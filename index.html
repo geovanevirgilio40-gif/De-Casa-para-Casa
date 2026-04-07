@@ -143,7 +143,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
   <hr class="divider">
   <button id="btnRegister"> Criar Conta</button>
   <button class="btn-secondary" id="btnLogin">Já tenho conta — Entrar</button>
-  <p class="link" onclick="showPage('suportePage')" style="margin-top:16px;">ℹ️ Como funciona?</p>
+  <p class="link" onclick="showPage('suportePage')" style="margin-top:16px;"> Como funciona?</p>
 </div>
 
 <!-- REGISTER -->
@@ -193,11 +193,11 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <div class="slide-dots" id="slideDots"></div>
   </div>
   <div class="menu-grid">
-    <button class="menu-btn" onclick="showPage('searchPage')"><span class="icon">🔍</span>Procurar Casa</button>
-    <button class="menu-btn" onclick="showPage('profilePage')"><span class="icon">👤</span>Meu Perfil</button>
-    <button class="menu-btn hidden" id="btnRent" onclick="startNewHouse()"><span class="icon">🏠</span>Arrendar Casa</button>
-    <button class="menu-btn hidden" id="btnAdmin" onclick="showPage('adminPage')"><span class="icon">⚙️</span>Administração</button>
-    <button class="menu-btn full" onclick="showPage('suportePage')"><span class="icon">💬</span>Suporte Técnico</button>
+    <button class="menu-btn" onclick="showPage('searchPage')">Procurar Casa</button>
+    <button class="menu-btn" onclick="showPage('profilePage')"><span class="icon"></span>Meu Perfil</button>
+    <button class="menu-btn hidden" id="btnRent" onclick="startNewHouse()">Arrendar Casa</button>
+    <button class="menu-btn hidden" id="btnAdmin" onclick="showPage('adminPage')"><span class="icon"></span>Administração</button>
+    <button class="menu-btn full" onclick="showPage('suportePage')">Suporte Técnico</button>
   </div>
   <p class="link" style="margin-top:20px;" onclick="logout()"> Sair da conta</p>
 </div>
@@ -218,7 +218,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <div class="container wide hidden" id="searchPage">
   <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2>Casas Disponíveis</h2></div>
   <div class="search-bar">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"></span>
     <input id="searchInput" placeholder="Pesquisar por título, zona, preço...">
   </div>
   <div class="filters-row">
@@ -227,7 +227,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
     <span class="filter-chip" onclick="setFilter('reservada',this)">Reservadas</span>
     <span class="filter-chip" onclick="setFilter('quintal',this)">Com Quintal</span>
     <span class="filter-chip" onclick="setFilter('energia',this)">Com Energia</span>
-    <span class="filter-chip" onclick="toggleAdvFilter(this)">⚙️ Filtros</span>
+    <span class="filter-chip" onclick="toggleAdvFilter(this)"> Filtros</span>
   </div>
   <div class="filter-panel" id="advancedFilter">
     <div class="filter-grid">
@@ -270,18 +270,18 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <div class="container wide hidden" id="adminPage">
   <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2>Administração</h2></div>
   <div class="stats-grid" id="adminStats"></div>
-  <h3 class="admin-section-title">👥 Utilizadores</h3>
+  <h3 class="admin-section-title">Utilizadores</h3>
   <div id="userList"><div class="spinner"></div></div>
 </div>
 
 <!-- SUPORTE -->
 <div class="container hidden" id="suportePage">
   <div class="page-header"><button class="back-btn" id="supportBack">←</button><h2>Suporte</h2></div>
-  <div class="support-section"><h3>🏡 Como funciona?</h3><p>Pesquisa uma casa, veja os detalhes e contacta o proprietário. O arrendamento é feito a partir de 6 meses.</p></div>
-  <div class="support-section"><h3>⚙️ Como ser administrador?</h3><p>Contacte-nos via WhatsApp. Após análise, a equipa atribuirá os privilégios.</p></div>
-  <div class="support-section"><h3>🚨 Suspeita de burla?</h3><p>Denuncie com os dados do utilizador. Agimos com rapidez.</p></div>
-  <div class="support-section"><h3>✅ Cuidados a ter</h3><p>Visite sempre a casa pessoalmente antes de pagar. Pagamentos apenas no escritório físico.</p></div>
-  <h3 style="font-family:'Playfair Display',serif;margin:20px 0 12px;">📞 Contactos</h3>
+  <div class="support-section"><h3> Como funciona?</h3><p>Pesquisa uma casa, veja os detalhes e contacta o proprietário. O arrendamento é feito a partir de 6 meses.</p></div>
+  <div class="support-section"><h3> Como ser administrador?</h3><p>Contacte-nos via WhatsApp. Após análise, a equipa atribuirá os privilégios.</p></div>
+  <div class="support-section"><h3> Suspeita de burla?</h3><p>Denuncie com os dados do utilizador. Agimos com rapidez.</p></div>
+  <div class="support-section"><h3> Cuidados a ter</h3><p>Visite sempre a casa pessoalmente antes de pagar. Pagamentos apenas no escritório físico.</p></div>
+  <h3 style="font-family:'Playfair Display',serif;margin:20px 0 12px;"> Contactos</h3>
   <div class="contact-item">📞 +244 940 232 504</div>
   <div class="contact-item">💬 WhatsApp: +244 940 232 504</div>
   <div class="contact-item">📧 geral@decasaparacasa.ao</div>
@@ -304,7 +304,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 <!-- MODAL CONTACT -->
 <div class="modal-overlay hidden" id="contactModal">
   <div class="modal-box">
-    <div class="modal-title">📞 Contactar Proprietário</div>
+    <div class="modal-title">Contactar Proprietário</div>
     <p id="contactInfo" style="color:var(--text2);font-size:14px;line-height:1.8;"></p>
     <div class="modal-actions"><button onclick="document.getElementById('contactModal').classList.add('hidden')">Fechar</button></div>
   </div>
