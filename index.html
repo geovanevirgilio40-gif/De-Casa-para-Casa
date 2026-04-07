@@ -148,7 +148,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- REGISTER -->
 <div class="container hidden" id="registerPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">←</button><h2>Criar Conta</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">voltar</button><h2>Criar Conta</h2></div>
   <div class="field"><label>Nome completo</label><input id="rName" placeholder="Ex: João Silva"></div>
   <div class="field"><label>Número de telefone</label><input id="rPhone" placeholder="Ex: 924000000"></div>
   <div class="field"><label>Email</label><input id="rEmail" type="email" placeholder="Ex: joao@email.com"></div>
@@ -163,7 +163,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- LOGIN -->
 <div class="container hidden" id="loginPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">←</button><h2>Entrar</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">voltar</button><h2>Entrar</h2></div>
   <div class="field"><label>Email</label><input id="lEmail" type="email" placeholder="O teu email"></div>
   <div class="field"><label>Password</label><input id="lPass" type="password" placeholder="A tua password"></div>
   <button id="loginBtn">Entrar</button>
@@ -172,7 +172,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- RECOVER -->
 <div class="container hidden" id="recoverPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('loginPage')">←</button><h2>Recuperar Senha</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('loginPage')">voltar</button><h2>Recuperar Senha</h2></div>
   <div class="field"><label>Email da conta</label><input id="recEmail" type="email" placeholder="O teu email"></div>
   <button id="recoverBtn">Enviar Email de Recuperação</button>
   <p style="font-size:13px;color:var(--text2);text-align:center;margin-top:12px;">Receberás um link no teu email.</p>
@@ -204,7 +204,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- PROFILE -->
 <div class="container hidden" id="profilePage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2>Meu Perfil</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Meu Perfil</h2></div>
   <div class="profile-avatar" id="profileAvatar">?</div>
   <div class="field"><label>Nome completo</label><input id="pName"></div>
   <div class="field"><label>Telefone</label><input id="pPhone"></div>
@@ -216,7 +216,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- SEARCH -->
 <div class="container wide hidden" id="searchPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2>Casas Disponíveis</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Casas Disponíveis</h2></div>
   <div class="search-bar">
     <span class="search-icon"></span>
     <input id="searchInput" placeholder="Pesquisar por título, zona, preço...">
@@ -241,7 +241,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- RENT -->
 <div class="container hidden" id="rentPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2 id="rentPageTitle">Arrendar Casa</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2 id="rentPageTitle">Arrendar Casa</h2></div>
   <input type="hidden" id="editHouseId">
   <div class="field"><label>Título</label><input id="title" placeholder="Ex: Vivenda T3 no Talatona"></div>
   <div class="field"><label>Zona / Localização</label><input id="zone" placeholder="Ex: Talatona, Luanda"></div>
@@ -268,7 +268,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- ADMIN -->
 <div class="container wide hidden" id="adminPage">
-  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">←</button><h2>Administração</h2></div>
+  <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Administração</h2></div>
   <div class="stats-grid" id="adminStats"></div>
   <h3 class="admin-section-title">Utilizadores</h3>
   <div id="userList"><div class="spinner"></div></div>
@@ -276,7 +276,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
 <!-- SUPORTE -->
 <div class="container hidden" id="suportePage">
-  <div class="page-header"><button class="back-btn" id="supportBack">←</button><h2>Suporte</h2></div>
+  <div class="page-header"><button class="back-btn" id="supportBack">voltar</button><h2>Suporte</h2></div>
   <div class="support-section"><h3> Como funciona?</h3><p>Pesquisa uma casa, veja os detalhes e contacta o proprietário. O arrendamento é feito a partir de 6 meses.</p></div>
   <div class="support-section"><h3> Como ser administrador?</h3><p>Contacte-nos via WhatsApp. Após análise, a equipa atribuirá os privilégios.</p></div>
   <div class="support-section"><h3> Suspeita de burla?</h3><p>Denuncie com os dados do utilizador. Agimos com rapidez.</p></div>
