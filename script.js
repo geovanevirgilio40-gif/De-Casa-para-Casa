@@ -655,26 +655,26 @@ function goBack(fromPage){
 // Update support back button
 document.getElementById('supportBack').onclick=()=>goBack('suportePage');
 
-// Add Sobre Nós and Termos to menu
-const menuFull=document.querySelector('.menu-btn.full');
-if(menuFull){
-  const sobreBtn=document.createElement('button');
-  sobreBtn.className='menu-btn';
-  sobreBtn.innerHTML='<span class="icon">🏢</span>Sobre Nós';
-  sobreBtn.onclick=()=>showPage('sobreNosPage');
-  menuFull.parentNode.insertBefore(sobreBtn,menuFull);
-}
-
-// Add Termos link to bottom of menu
+// Add Sobre Nós and Termos as links below logout
 const logoutLink=document.querySelector('.link[onclick*="logout"]');
 if(logoutLink){
+  // Sobre Nós link
+  const sobreLink=document.createElement('p');
+  sobreLink.className='link';
+  sobreLink.style.marginTop='8px';
+  sobreLink.style.fontSize='13px';
+  sobreLink.textContent='🏢 Sobre Nós';
+  sobreLink.onclick=()=>showPage('sobreNosPage');
+  logoutLink.parentNode.insertBefore(sobreLink,logoutLink.nextSibling);
+
+  // Termos link (inserted after Sobre Nós)
   const termosLink=document.createElement('p');
   termosLink.className='link';
-  termosLink.style.marginTop='8px';
-  termosLink.style.fontSize='12px';
+  termosLink.style.marginTop='4px';
+  termosLink.style.fontSize='13px';
   termosLink.textContent='📄 Termos e Condições';
   termosLink.onclick=()=>showPage('termosPage');
-  logoutLink.parentNode.insertBefore(termosLink,logoutLink.nextSibling);
+  sobreLink.parentNode.insertBefore(termosLink,sobreLink.nextSibling);
 }
 
 // ═══════════════════════════════════════
