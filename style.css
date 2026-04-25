@@ -39,7 +39,7 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .logo-title{font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent2);}
 .logo-sub{color:var(--text2);font-size:14px;margin-top:4px;}
 .slideshow-wrap{position:relative;margin:16px 0;}
-.slideshow-wrap img{width:100%;height:200px;object-fit:cover;border-radius:12px;border:1px solid var(--border);transition:opacity .5s;}
+.slideshow-wrap img{width:100%;height:200px;object-fit:cover;border-radius:12px;border:1px solid var(--border);transition:opacity .5s;background:var(--input-bg);}
 .slide-dots{text-align:center;margin-top:10px;display:flex;gap:6px;justify-content:center;}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:background .2s,transform .2s;}
 .dot.active{background:var(--accent);transform:scale(1.3);}
