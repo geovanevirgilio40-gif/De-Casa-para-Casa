@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════
 //  🔥 CONFIGURAÇÃO FIREBASE
-//  Substitui pelos teus valores reais!
 // ═══════════════════════════════════════
 firebase.initializeApp({
   apiKey:            "AIzaSyCUnobF2AqI_5WI_VerwaT_CGiKi2CFQE8",
@@ -14,18 +13,12 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// ═══════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════
 let currentUser    = null;
 let allHouses      = [];
 let pendingModal   = null;
 let editingHouseId = null;
-let filterMode     = "todos";
 
-// ═══════════════════════════════════════
-//  DARK MODE
-// ═══════════════════════════════════════
+// ═══ DARK MODE ═══
 const modeBtn = document.getElementById('toggleMode');
 if(localStorage.getItem('dcpc_theme')==='dark'){document.body.classList.add('dark');modeBtn.textContent='☀️';}
 modeBtn.onclick=()=>{
@@ -35,9 +28,7 @@ modeBtn.onclick=()=>{
   localStorage.setItem('dcpc_theme',d?'dark':'light');
 };
 
-// ═══════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════
+// ═══ TOAST ═══
 function toast(msg,type='info'){
   const el=document.createElement('div');
   el.className=`toast ${type}`;
@@ -46,9 +37,7 @@ function toast(msg,type='info'){
   setTimeout(()=>el.remove(),3300);
 }
 
-// ═══════════════════════════════════════
-//  MODAL
-// ═══════════════════════════════════════
+// ═══ MODAL ═══
 function showModal(title,msg,label,cb,danger=true){
   document.getElementById('modalTitle').textContent=title;
   document.getElementById('modalMsg').textContent=msg;
@@ -61,9 +50,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.add('hid
 document.getElementById('modalConfirmBtn').onclick=()=>{if(pendingModal)pendingModal();closeModal();};
 document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)closeModal();};
 
-// ═══════════════════════════════════════
-//  PAGES
-// ═══════════════════════════════════════
+// ═══ PAGES ═══
 function showPage(id){
   document.querySelectorAll('.container').forEach(d=>d.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
@@ -76,11 +63,13 @@ function showPage(id){
     toast("Apenas administradores!","error");showPage('menuPage');return;
   }
 }
-document.getElementById('supportBack').onclick=()=>currentUser?showPage('menuPage'):showPage('startPage');
 
-// ═══════════════════════════════════════
-//  MENU
-// ═══════════════════════════════════════
+function goBack(page){
+  showPage(currentUser?'menuPage':'startPage');
+}
+document.getElementById('supportBack').onclick=()=>goBack('suporte');
+
+// ═══ MENU ═══
 function updateMenu(){
   const a=currentUser?.isAdmin;
   document.getElementById('btnRent').classList.toggle('hidden',!a);
@@ -91,9 +80,7 @@ function updateMenu(){
   document.getElementById('menuUserEmail').textContent=currentUser?.email||'—';
 }
 
-// ═══════════════════════════════════════
-//  SLIDESHOW
-// ═══════════════════════════════════════
+// ═══ SLIDESHOW ═══
 const slides=["img/00.jpg","img/1.jpg","img/2.jpg","img/3.jpg","img/4.jpg","img/5.jpg"];
 let si=0,st=null;
 function renderDots(){
@@ -103,14 +90,20 @@ function renderDots(){
 function goSlide(i){
   si=i;const img=document.getElementById('imagem');
   img.style.opacity=0;
-  setTimeout(()=>{img.src=slides[si];img.style.opacity=1;},250);
+  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
+  setTimeout(()=>{img.src=slides[si];img.onerror=()=>img.src=ph;img.style.opacity=1;},250);
   renderDots();
 }
-function startSlideshow(){clearInterval(st);renderDots();st=setInterval(()=>goSlide((si+1)%slides.length),3000);}
+function startSlideshow(){
+  clearInterval(st);
+  const img=document.getElementById('imagem');
+  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
+  img.src=slides[0];img.onerror=()=>img.src=ph;
+  renderDots();
+  st=setInterval(()=>goSlide((si+1)%slides.length),3000);
+}
 
-// ═══════════════════════════════════════
-//  PASS STRENGTH
-// ═══════════════════════════════════════
+// ═══ PASS STRENGTH ═══
 function checkPassStrength(v){
   const bar=document.getElementById('passBar');
   let s=0;
@@ -120,9 +113,7 @@ function checkPassStrength(v){
   bar.style.background=['#ccc','#c0392b','#e08c1a','#e0c01a','#1a7a4a','#1a7a4a'][s];
 }
 
-// ═══════════════════════════════════════
-//  AUTH — Firebase
-// ═══════════════════════════════════════
+// ═══ AUTH ERRORS ═══
 function errMsg(e){
   const m={
     'auth/email-already-in-use':'Este email já está registado.',
@@ -136,7 +127,7 @@ function errMsg(e){
   return m[e.code]||e.message;
 }
 
-// REGISTER
+// ═══ REGISTER ═══
 document.getElementById('registerBtn').onclick=async()=>{
   const name=document.getElementById('rName').value.trim();
   const phone=document.getElementById('rPhone').value.trim();
@@ -146,42 +137,30 @@ document.getElementById('registerBtn').onclick=async()=>{
   if(!name||!phone||!email||!pass)return toast("Preencha todos os campos!","error");
   if(pass.length<6)return toast("Password: mínimo 6 caracteres!","error");
   if(pass!==pass2)return toast("As passwords não coincidem!","error");
-
-  // Validar formato de email
-  const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-  if(!emailRegex.test(email))return toast("Insere um email válido!","error");
-
-  // Bloquear domínios de email descartáveis conhecidos
-  const fakedomains=['mailinator.com','tempmail.com','guerrillamail.com','10minutemail.com',
-    'throwam.com','yopmail.com','trashmail.com','fakeinbox.com','sharklasers.com',
-    'guerrillamailblock.com','grr.la','guerrillamail.info','spam4.me','dispostable.com',
-    'maildrop.cc','discard.email','mailnull.com','spamgourmet.com','trashmail.me',
-    'tempinbox.com','tempr.email','dispostable.com','getnada.com','mailexpire.com'];
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return toast("Insere um email válido!","error");
+  const fakedomains=['mailinator.com','tempmail.com','guerrillamail.com','10minutemail.com','yopmail.com','trashmail.com','fakeinbox.com','sharklasers.com','maildrop.cc','discard.email','getnada.com'];
   const domain=email.split('@')[1]?.toLowerCase();
   if(fakedomains.includes(domain))return toast("Este domínio de email não é permitido!","error");
-
   const btn=document.getElementById('registerBtn');
   btn.disabled=true;btn.textContent="⏳ A criar conta...";
   try{
     const cred=await auth.createUserWithEmailAndPassword(email,pass);
     await cred.user.updateProfile({displayName:name});
     await db.collection('users').doc(cred.user.uid).set({
-      name,phone,email,isAdmin:false,emailVerified:false,
+      name,phone,email,isAdmin:false,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     await cred.user.sendEmailVerification();
     await auth.signOut();
-    toast("Conta criada! Verifica o teu email antes de entrar. 📧","success");
+    toast("Conta criada! Verifica o teu email antes de entrar 📧","success");
     showPage('loginPage');
   }catch(e){
-    // Se conta foi criada mas algo falhou, apaga a conta incompleta
-    if(auth.currentUser)await auth.currentUser.delete();
+    if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
     toast(errMsg(e),"error");
-  }
-  finally{btn.disabled=false;btn.textContent="Confirmar Cadastro";}
+  }finally{btn.disabled=false;btn.textContent="Confirmar Cadastro";}
 };
 
-// LOGIN
+// ═══ LOGIN ═══
 document.getElementById('loginBtn').onclick=async()=>{
   const email=document.getElementById('lEmail').value.trim();
   const pass=document.getElementById('lPass').value.trim();
@@ -192,12 +171,11 @@ document.getElementById('loginBtn').onclick=async()=>{
     const cred=await auth.signInWithEmailAndPassword(email,pass);
     if(!cred.user.emailVerified){
       await auth.signOut();
-      toast("Email não verificado! Verifica a tua caixa de correio. 📧","error");
-      btn.disabled=false;btn.textContent="Entrar";
-      // Show resend option
+      toast("Email não verificado! Verifica a tua caixa de correio 📧","error");
       document.getElementById('resendVerif').classList.remove('hidden');
       document.getElementById('resendVerif').dataset.email=email;
       document.getElementById('resendVerif').dataset.pass=pass;
+      btn.disabled=false;btn.textContent="Entrar";
       return;
     }
     document.getElementById('resendVerif').classList.add('hidden');
@@ -207,35 +185,38 @@ document.getElementById('loginBtn').onclick=async()=>{
   }
 };
 
-// RECOVER
-let lastRecoverEmail = '';
-let resendCooldownTimer = null;
+async function resendEmail(){
+  const div=document.getElementById('resendVerif');
+  const email=div.dataset.email, pass=div.dataset.pass;
+  if(!email||!pass)return toast("Faz login primeiro.","error");
+  try{
+    const cred=await auth.signInWithEmailAndPassword(email,pass);
+    await cred.user.sendEmailVerification();
+    await auth.signOut();
+    toast("Email reenviado! Verifica o spam também 📧","success");
+  }catch(e){toast(errMsg(e),"error");}
+}
+
+// ═══ RECOVER ═══
+let lastRecoverEmail='', resendTimer=null;
 
 document.getElementById('recoverBtn').onclick=async()=>{
   const email=document.getElementById('recEmail').value.trim();
   if(!email)return toast("Insere o teu email!","error");
-  // Basic email format check
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return toast("Insere um email válido!","error");
   const btn=document.getElementById('recoverBtn');
   btn.disabled=true;btn.textContent="⏳ A enviar...";
   try{
     await auth.sendPasswordResetEmail(email);
-    lastRecoverEmail = email;
-    // Show step 2
+    lastRecoverEmail=email;
     document.getElementById('recoverStep1').classList.add('hidden');
     document.getElementById('recoverStep2').classList.remove('hidden');
-    document.getElementById('recEmailSent').textContent = email;
+    document.getElementById('recEmailSent').textContent=email;
     startResendCooldown();
   }catch(e){
-    if(e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential'){
-      toast("Este email não está registado na plataforma!","error");
-    } else if(e.code === 'auth/invalid-email'){
-      toast("Insere um email válido!","error");
-    } else {
-      toast(errMsg(e),"error");
-    }
-  }
-  finally{btn.disabled=false;btn.textContent="📧 Enviar Link de Recuperação";}
+    if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'){
+      toast("Este email não está registado!","error");
+    }else{toast(errMsg(e),"error");}
+  }finally{btn.disabled=false;btn.textContent="📧 Enviar Link de Recuperação";}
 };
 
 async function resendRecovery(){
@@ -244,34 +225,25 @@ async function resendRecovery(){
   btn.disabled=true;btn.textContent="⏳ A reenviar...";
   try{
     await auth.sendPasswordResetEmail(lastRecoverEmail);
-    toast("Email reenviado! Verifica o spam também. 📧","success");
+    toast("Email reenviado! Verifica o spam 📧","success");
     startResendCooldown();
-  }catch(e){
-    toast("Erro ao reenviar. Tenta mais tarde.","error");
-  }
+  }catch(e){toast("Erro ao reenviar.","error");}
   finally{btn.disabled=false;btn.textContent="🔄 Reenviar Email";}
 }
 
 function startResendCooldown(){
-  // 60 second cooldown before allowing resend
-  let seconds = 60;
-  const cooldownEl = document.getElementById('resendCooldown');
-  const resendBtn = document.getElementById('resendRecoverBtn');
-  resendBtn.disabled = true;
-  cooldownEl.style.display = 'block';
-  clearInterval(resendCooldownTimer);
-  resendCooldownTimer = setInterval(()=>{
-    seconds--;
-    cooldownEl.textContent = `Podes reenviar em ${seconds}s`;
-    if(seconds <= 0){
-      clearInterval(resendCooldownTimer);
-      resendBtn.disabled = false;
-      cooldownEl.style.display = 'none';
-    }
-  }, 1000);
+  let secs=60;
+  const el=document.getElementById('resendCooldown');
+  const btn=document.getElementById('resendRecoverBtn');
+  btn.disabled=true;el.style.display='block';
+  clearInterval(resendTimer);
+  resendTimer=setInterval(()=>{
+    secs--;el.textContent=`Podes reenviar em ${secs}s`;
+    if(secs<=0){clearInterval(resendTimer);btn.disabled=false;el.style.display='none';}
+  },1000);
 }
 
-// LOGOUT
+// ═══ LOGOUT ═══
 function logout(){
   showModal('Sair','Tem a certeza que quer sair?','Sair',async()=>{
     await auth.signOut();
@@ -279,34 +251,46 @@ function logout(){
   });
 }
 
-// AUTH STATE — o coração do sistema
+// ═══ AUTH STATE ═══
 auth.onAuthStateChanged(async user=>{
   if(user){
     try{
       const doc=await db.collection('users').doc(user.uid).get();
       const data=doc.exists?doc.data():{};
-      currentUser={
-        uid:user.uid,email:user.email,
-        name:data.name||user.displayName||'Utilizador',
-        phone:data.phone||'',isAdmin:data.isAdmin||false
-      };
-      showPage('menuPage');
+      currentUser={uid:user.uid,email:user.email,name:data.name||user.displayName||'Utilizador',phone:data.phone||'',isAdmin:data.isAdmin||false};
     }catch(e){
-      // Se Firestore falhar, usa dados básicos do Auth
       currentUser={uid:user.uid,email:user.email,name:user.displayName||'Utilizador',phone:'',isAdmin:false};
-      showPage('menuPage');
     }
     document.getElementById('loginBtn').disabled=false;
     document.getElementById('loginBtn').textContent="Entrar";
+    showPage('menuPage');
   }else{
     currentUser=null;
     showPage('startPage');
   }
 });
 
-// ═══════════════════════════════════════
-//  PROFILE
-// ═══════════════════════════════════════
+// ═══ GOOGLE AUTH ═══
+async function loginWithGoogle(){
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:'select_account'});
+  try{
+    const result=await auth.signInWithPopup(provider);
+    const user=result.user;
+    const doc=await db.collection('users').doc(user.uid).get();
+    if(!doc.exists){
+      await db.collection('users').doc(user.uid).set({
+        name:user.displayName||'Utilizador',phone:'',email:user.email,isAdmin:false,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    toast("Bem-vindo(a), "+(user.displayName||'')+"! 👋","success");
+  }catch(e){
+    if(e.code!=='auth/popup-closed-by-user')toast(errMsg(e),"error");
+  }
+}
+
+// ═══ PROFILE ═══
 function loadProfile(){
   if(!currentUser)return;
   document.getElementById('pName').value=currentUser.name;
@@ -315,6 +299,7 @@ function loadProfile(){
   document.getElementById('profileAvatar').textContent=currentUser.name[0].toUpperCase();
   document.getElementById('pPassNew').value='';
 }
+
 document.getElementById('saveProfileBtn').onclick=async()=>{
   const name=document.getElementById('pName').value.trim();
   const phone=document.getElementById('pPhone').value.trim();
@@ -336,15 +321,12 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
   finally{btn.disabled=false;btn.textContent="💾 Guardar Alterações";}
 };
 
-// ═══════════════════════════════════════
-//  HOUSES
-// ═══════════════════════════════════════
+// ═══ HOUSES ═══
 function startNewHouse(){
   editingHouseId=null;
   document.getElementById('editHouseId').value='';
   document.getElementById('rentPageTitle').textContent='Arrendar Casa';
-  ['title','zone','rooms','living','kitchen','bathrooms','price','ownerContact','desc']
-    .forEach(id=>document.getElementById(id).value='');
+  ['title','zone','rooms','living','kitchen','bathrooms','price','ownerContact','desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('electricity').value='false';
   document.getElementById('yard').value='false';
   document.getElementById('houseStatus').value='disponivel';
@@ -440,9 +422,7 @@ document.getElementById('saveHouse').onclick=async()=>{
   finally{btn.disabled=false;btn.textContent="💾 Guardar Casa";}
 };
 
-// ═══════════════════════════════════════
-//  RENDER HOUSES
-// ═══════════════════════════════════════
+// ═══ RENDER HOUSES ═══
 let filterModeActive="todos";
 function setFilter(mode,el){
   filterModeActive=mode;
@@ -503,9 +483,7 @@ async function renderHouses(){
         </div>
         <div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
         ${h.desc?`<div class="card-desc">${h.desc.length>100?h.desc.slice(0,100)+'…':h.desc}</div>`:''}
-        <div class="card-actions">
-          <button class="btn-success" onclick='showContact(${hj})'>📞 Contactar</button>
-        </div>
+        <div class="card-actions"><button class="btn-success" onclick='showContact(${hj})'>📞 Contactar</button></div>
       </div>
       ${currentUser?.isAdmin?`<div class="card-admin-actions"><button class="btn-secondary" onclick="editHouse('${h.id}')">✏️ Editar</button><button class="btn-danger" onclick="delHouse('${h.id}')">🗑️ Apagar</button></div>`:''}`;
     list.appendChild(div);
@@ -539,16 +517,11 @@ function delHouse(id){
 
 document.getElementById('searchInput').addEventListener('input',()=>renderHouses());
 
-// ═══════════════════════════════════════
-//  ADMIN
-// ═══════════════════════════════════════
+// ═══ ADMIN ═══
 async function loadAdmin(){
   if(!currentUser?.isAdmin){toast("Acesso negado!","error");showPage('menuPage');return;}
   try{
-    const [uSnap,hSnap]=await Promise.all([
-      db.collection('users').get(),
-      db.collection('houses').get()
-    ]);
+    const [uSnap,hSnap]=await Promise.all([db.collection('users').get(),db.collection('houses').get()]);
     const users=uSnap.docs.map(d=>({uid:d.id,...d.data()}));
     const houses=hSnap.docs.map(d=>({id:d.id,...d.data()}));
     const avail=houses.filter(h=>!h.status||h.status==='disponivel').length;
@@ -568,10 +541,7 @@ async function loadAdmin(){
           <span>📞 ${u.phone||'—'} · ${u.email||'—'}</span>
         </div>
         <div class="user-item-actions">
-          ${!isSelf?(u.isAdmin
-            ?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.uid}',false)">- Admin</button>`
-            :`<button class="btn-success btn-sm" onclick="setAdmin('${u.uid}',true)">+ Admin</button>`
-          ):''}
+          ${!isSelf?(u.isAdmin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.uid}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.uid}',true)">+ Admin</button>`):''}
           ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.uid}')">🗑️</button>`:''}
         </div>`;
       list.appendChild(item);
@@ -595,91 +565,7 @@ function delUser(uid){
   });
 }
 
-// ═══════════════════════════════════════
-//  RESEND VERIFICATION
-// ═══════════════════════════════════════
-async function resendEmail(){
-  const div=document.getElementById('resendVerif');
-  const email=div.dataset.email;
-  const pass=div.dataset.pass;
-  if(!email||!pass){toast("Faz login primeiro para reenviar.","error");return;}
-  try{
-    const cred=await auth.signInWithEmailAndPassword(email,pass);
-    await cred.user.sendEmailVerification();
-    await auth.signOut();
-    toast("Email de verificação reenviado! Verifica o spam também. 📧","success");
-  }catch(e){toast(errMsg(e),"error");}
-}
-
-// ═══════════════════════════════════════
-//  GOOGLE AUTH
-// ═══════════════════════════════════════
-async function loginWithGoogle(){
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  try{
-    const result = await auth.signInWithPopup(provider);
-    const user = result.user;
-    // Check if user doc exists, if not create it
-    const doc = await db.collection('users').doc(user.uid).get();
-    if(!doc.exists){
-      await db.collection('users').doc(user.uid).set({
-        name: user.displayName || 'Utilizador',
-        phone: '',
-        email: user.email,
-        isAdmin: false,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-    toast("Bem-vindo(a), " + (user.displayName||'') + "! 👋","success");
-  }catch(e){
-    if(e.code !== 'auth/popup-closed-by-user'){
-      toast(errMsg(e),"error");
-    }
-  }
-}
-
-// ═══════════════════════════════════════
-//  NAVIGATION HELPER
-// ═══════════════════════════════════════
-function goBack(fromPage){
-  // Pages accessible before login go back to startPage
-  const publicPages=['sobreNosPage','termosPage'];
-  if(!currentUser||publicPages.includes(fromPage)){
-    showPage(currentUser?'menuPage':'startPage');
-  } else {
-    showPage('menuPage');
-  }
-}
-
-// Update support back button
-document.getElementById('supportBack').onclick=()=>goBack('suportePage');
-
-// Add Sobre Nós and Termos as links below logout
-const logoutLink=document.querySelector('.link[onclick*="logout"]');
-if(logoutLink){
-  // Sobre Nós link
-  const sobreLink=document.createElement('p');
-  sobreLink.className='link';
-  sobreLink.style.marginTop='8px';
-  sobreLink.style.fontSize='13px';
-  sobreLink.textContent='🏢 Sobre Nós';
-  sobreLink.onclick=()=>showPage('sobreNosPage');
-  logoutLink.parentNode.insertBefore(sobreLink,logoutLink.nextSibling);
-
-  // Termos link (inserted after Sobre Nós)
-  const termosLink=document.createElement('p');
-  termosLink.className='link';
-  termosLink.style.marginTop='4px';
-  termosLink.style.fontSize='13px';
-  termosLink.textContent='📄 Termos e Condições';
-  termosLink.onclick=()=>showPage('termosPage');
-  sobreLink.parentNode.insertBefore(termosLink,sobreLink.nextSibling);
-}
-
-// ═══════════════════════════════════════
-//  BUTTONS
-// ═══════════════════════════════════════
+// ═══ BUTTONS ═══
 document.getElementById('btnRegister').onclick=()=>showPage('registerPage');
 document.getElementById('btnLogin').onclick=()=>showPage('loginPage');
 document.getElementById('googleLoginBtn').onclick=()=>loginWithGoogle();
