@@ -117,4 +117,4 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .pass-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden;}
 .pass-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;background:var(--danger);}
 @media(max-width:480px){body{padding:10px;}.container{padding:20px 16px;}.house-list{grid-template-columns:1fr;}.filter-grid,.rent-grid{grid-template-columns:1fr;}}
-@media(hover:none) and (pointer:coarse){button,.link{min-height:44px;}input,select,textarea{font-size:16px;}}
+@media(hover:none) and (pointer:coarse){button,.link{min-height:44px;}input,select,textarea{font-size:16px;}}.
