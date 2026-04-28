@@ -252,6 +252,13 @@ function logout(){
 }
 
 // ═══ AUTH STATE ═══
+function hideLoader(){
+  const ls=document.getElementById('loadingScreen');
+  if(!ls)return;
+  ls.style.opacity='0';
+  setTimeout(()=>ls.style.display='none',400);
+}
+
 auth.onAuthStateChanged(async user=>{
   if(user){
     try{
@@ -263,11 +270,15 @@ auth.onAuthStateChanged(async user=>{
     }
     document.getElementById('loginBtn').disabled=false;
     document.getElementById('loginBtn').textContent="Entrar";
+    hideLoader();
     showPage('menuPage');
   }else{
     currentUser=null;
+    hideLoader();
     showPage('startPage');
   }
+  // Safety timeout
+  setTimeout(hideLoader, 8000);
 });
 
 // ═══ GOOGLE AUTH ═══
