@@ -30,8 +30,8 @@
 </div>
 <div id="toast-container"></div>
 <div class="topbar">
+<button id="toggleMode">claro/escuro</button>
 <button id="logoutTopBtn" class="hidden">Sair</button>
-<button id="toggleMode"></button>
 </div>
 <!-- START -->
 <div class="container hidden" id="startPage">
@@ -50,12 +50,12 @@
 </div>
 <hr class="divider">
 <div class="slideshow-wrap">
-<img src="IMG/01.jpg" alt="Casa" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+<img id="imagem" src="img/01.jpg" alt="Casa" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
 </div>
 <button id="btnRegister"> Criar Conta</button>
 <button class="btn-secondary" id="btnLogin">Já tenho conta — Entrar</button>
 <p class="link" onclick="showPage('sobreNosPage')" style="margin-top:8px;"> Sobre Nós</p>
-<p class="link" onclick="showPage('suportePage')" style="margin-top:4px;"> Como funciona?</p>
+<p class="link" onclick="showPage('suportePage')" style="margin-top:4px;">ℹ Como funciona?</p>
 </div>
 <!-- REGISTER -->
 <div class="container hidden" id="registerPage">
@@ -149,7 +149,7 @@
 <span class="admin-badge hidden" id="menuAdminBadge">ADMIN</span>
 </div>
 <div class="slideshow-wrap">
-<img id="imagem" src="IMG/00.jpg" alt="Casa" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
+<img id="imagem" src="img/00.jpg" alt="Casa" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
 <div class="slide-dots" id="slideDots"></div>
 </div>
 <div class="menu-grid">
@@ -217,7 +217,7 @@
 <div class="field"><label>Preço Kz/mês</label><input id="price" placeholder="Ex: 45000"></div>
 <div class="field"><label>Contacto do proprietário</label><input id="ownerContact" placeholder="Ex: +244 9XX XXX XXX"></div>
 <div class="field"><label>Descrição</label><textarea id="desc" placeholder="Descreve a casa..."></textarea></div>
-<div class="field"><label>Fotos (máx. 5)</label><input id="photos" type="file" multiple accept="image/*"></div>
+<div class="field"><label>Fotos (máx. 5)</label><input id="photos" type="file" multiple accept="image/*,video/*"></div>
 <p id="uploadProgress" style="display:none;font-size:13px;color:var(--text2);text-align:center;margin:8px 0;"></p>
 <button id="saveHouse"> Guardar Casa</button>
 </div>
@@ -267,6 +267,17 @@
 <div class="support-section"><h3>6. Lei Aplicável</h3><p>Estes termos são regidos pela legislação da República de Angola.</p></div>
 <p style="font-size:12px;color:var(--text2);text-align:center;margin-top:16px;">© 2025 De Casa para Casa</p>
 </div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="closeLightbox()">
+  <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10;margin:0;padding:0;width:44px;">✕</button>
+  <button id="lbPrev" onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">‹</button>
+  <button id="lbNext" onclick="event.stopPropagation();lbNav(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">›</button>
+  <img id="lbImg" src="" style="max-width:96vw;max-height:90vh;object-fit:contain;border-radius:8px;display:none;" onclick="event.stopPropagation()">
+  <video id="lbVid" controls style="max-width:96vw;max-height:90vh;border-radius:8px;display:none;" onclick="event.stopPropagation()"></video>
+  <div id="lbCounter" style="position:absolute;bottom:16px;color:rgba(255,255,255,.7);font-size:14px;"></div>
+</div>
+
 <!-- MODAL CONFIRM -->
 <div class="modal-overlay hidden" id="modalOverlay">
 <div class="modal-box">
