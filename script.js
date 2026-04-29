@@ -142,7 +142,7 @@ document.getElementById('registerBtn').onclick=async()=>{
  const domain=email.split('@')[1]?.toLowerCase();
  if(fakedomains.includes(domain))return toast("Este domínio de email não é permitido!","error");
  const btn=document.getElementById('registerBtn');
- btn.disabled=true;btn.textContent="A criar conta...";
+ btn.disabled=true;btn.textContent=" A criar conta...";
  try{
  const cred=await auth.createUserWithEmailAndPassword(email,pass);
  await cred.user.updateProfile({displayName:name});
@@ -152,7 +152,7 @@ document.getElementById('registerBtn').onclick=async()=>{
  });
  await cred.user.sendEmailVerification();
  await auth.signOut();
- toast("Conta criada! Verifica o teu email antes de entrar 📧","success");
+ toast("Conta criada! Verifica o teu email antes de entrar ","success");
  showPage('loginPage');
  }catch(e){
  if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
@@ -204,7 +204,7 @@ document.getElementById('recoverBtn').onclick=async()=>{
  const email=document.getElementById('recEmail').value.trim();
  if(!email)return toast("Insere o teu email!","error");
  const btn=document.getElementById('recoverBtn');
- btn.disabled=true;btn.textContent="A enviar...";
+ btn.disabled=true;btn.textContent=" A enviar...";
  try{
  await auth.sendPasswordResetEmail(email);
  lastRecoverEmail=email;
@@ -222,7 +222,7 @@ document.getElementById('recoverBtn').onclick=async()=>{
 async function resendRecovery(){
  if(!lastRecoverEmail)return;
  const btn=document.getElementById('resendRecoverBtn');
- btn.disabled=true;btn.textContent="A reenviar...";
+ btn.disabled=true;btn.textContent=" A reenviar...";
  try{
  await auth.sendPasswordResetEmail(lastRecoverEmail);
  toast("Email reenviado! Verifica o spam ","success");
@@ -317,7 +317,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  const passNew=document.getElementById('pPassNew').value.trim();
  if(!name)return toast("O nome não pode estar vazio!","error");
  const btn=document.getElementById('saveProfileBtn');
- btn.disabled=true;btn.textContent=" A guardar...";
+ btn.disabled=true;btn.textContent="A guardar...";
  try{
  await db.collection('users').doc(currentUser.uid).update({name,phone});
  await auth.currentUser.updateProfile({displayName:name});
@@ -329,7 +329,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  toast("Perfil atualizado!","success");
  updateMenu();
  }catch(e){toast(e.message||"Erro ao guardar.","error");}
- finally{btn.disabled=false;btn.textContent="💾 Guardar Alterações";}
+ finally{btn.disabled=false;btn.textContent="Guardar Alterações";}
 };
 
 // ═══ HOUSES ═══
@@ -400,7 +400,7 @@ document.getElementById('saveHouse').onclick=async()=>{
  const yard=document.getElementById('yard').value==="true";
  const ownerContact=document.getElementById('ownerContact').value.trim();
  const desc=document.getElementById('desc').value.trim();
- const files=[...document.getElementById('photos').files].slice(0,5);
+ const files=[...document.getElementById('photos').files].slice(0,50);
  const btn=document.getElementById('saveHouse');
  btn.disabled=true;btn.textContent=" A guardar...";
  try{
@@ -594,4 +594,97 @@ if(_logBtn){
 }
 function _updateLogBtn(){
   if(_logBtn) _logBtn.classList.toggle('hidden',!currentUser);
+}
+
+// ── MEDIA THUMB ──
+function isVideo(src){return src&&(src.startsWith('data:video')||/\.(mp4|webm|ogg|mov)$/i.test(src));}
+
+function renderMediaThumb(src, allMedia, idx, houseId){
+  if(isVideo(src)){
+    return `<video src="\${src}" style="width:100%;height:190px;object-fit:cover;display:block;cursor:zoom-in;background:#000;" muted playsinline ondblclick="openLightbox(\${JSON.stringify(allMedia)},\${idx})" data-idx="\${idx}" data-photos='\${JSON.stringify(allMedia)}'></video>`;
+  }
+  return `<img src="\${src}" alt="foto" data-idx="\${idx}" data-photos='\${JSON.stringify(allMedia)}' onerror="this.src='\${src}'" style="cursor:zoom-in;" ondblclick="openLightbox(\${JSON.stringify(allMedia)},\${idx})">`;
+}
+
+// ── LIGHTBOX ──
+let _lbMedia=[], _lbIdx=0;
+
+function openLightbox(media, idx){
+  _lbMedia = media; _lbIdx = idx;
+  lbShow();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  const v=document.getElementById('lbVid');
+  v.pause(); v.src='';
+  document.body.style.overflow='';
+}
+
+function lbNav(dir){
+  _lbIdx = (_lbIdx + dir + _lbMedia.length) % _lbMedia.length;
+  lbShow();
+}
+
+function lbShow(){
+  const src = _lbMedia[_lbIdx];
+  const img = document.getElementById('lbImg');
+  const vid = document.getElementById('lbVid');
+  const ctr = document.getElementById('lbCounter');
+  const prev= document.getElementById('lbPrev');
+  const next= document.getElementById('lbNext');
+
+  if(isVideo(src)){
+    img.style.display='none';
+    vid.style.display='block';
+    vid.src=src; vid.load();
+  } else {
+    vid.style.display='none'; vid.pause(); vid.src='';
+    img.style.display='block';
+    img.src=src;
+  }
+  ctr.textContent = _lbMedia.length > 1 ? (_lbIdx+1)+' / '+_lbMedia.length : '';
+  prev.style.display = _lbMedia.length > 1 ? 'flex' : 'none';
+  next.style.display = _lbMedia.length > 1 ? 'flex' : 'none';
+}
+
+// Close lightbox with Escape key
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closeLightbox();
+  if(e.key==='ArrowLeft') lbNav(-1);
+  if(e.key==='ArrowRight') lbNav(1);
+});
+
+// Fix gNav to support video thumbs
+const _origGNav = gNav;
+function gNav(id, dir){
+  const g=document.getElementById('g-'+id);
+  const media=g.querySelector('[data-photos]');
+  if(!media) return;
+  const photos=JSON.parse(media.dataset.photos||'[]');
+  if(photos.length<=1)return;
+  let idx=parseInt(media.dataset.idx||0)+dir;
+  if(idx<0)idx=photos.length-1;if(idx>=photos.length)idx=0;
+
+  const newSrc = photos[idx];
+  const container = g;
+
+  if(isVideo(newSrc)){
+    // Replace with video
+    const oldEl = container.querySelector('img,video');
+    if(oldEl){
+      oldEl.style.opacity=0;
+      setTimeout(()=>{
+        oldEl.outerHTML = renderMediaThumb(newSrc, photos, idx, id);
+      },200);
+    }
+  } else {
+    const img=g.querySelector('img');
+    if(img){img.style.opacity=0;setTimeout(()=>{img.src=newSrc;img.dataset.idx=idx;img.style.opacity=1;},200);}
+    const vid=g.querySelector('video');
+    if(vid){vid.style.opacity=0;setTimeout(()=>{vid.outerHTML=`<img src="\${newSrc}" alt="foto" data-idx="\${idx}" data-photos='\${JSON.stringify(photos)}' style="cursor:zoom-in;" ondblclick="openLightbox(\${JSON.stringify(photos)},\${idx})">`;},200);}
+  }
+  const c=document.getElementById('gc-'+id);if(c)c.textContent=idx+1;
 }
