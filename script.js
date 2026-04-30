@@ -81,7 +81,7 @@ function updateMenu(){
 }
 
 // SLIDESHOW 
-const slides=["IMG/00.jpg","IMG/1.jpg","IMG/2.jpg","IMG/3.jpg","IMG/4.jpg","IMG/5.jpg"];
+const slides=["img/00.jpg","img/1.jpg","img/2.jpg","img/3.jpg","img/4.jpg","img/5.jpg"];
 let si=0,st=null;
 function renderDots(){
  document.getElementById('slideDots').innerHTML=
@@ -329,7 +329,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  toast("Perfil atualizado!","success");
  updateMenu();
  }catch(e){toast(e.message||"Erro ao guardar.","error");}
- finally{btn.disabled=false;btn.textContent="💾 Guardar Alterações";}
+ finally{btn.disabled=false;btn.textContent="Guardar Alterações";}
 };
 
 // ═══ HOUSES ═══
