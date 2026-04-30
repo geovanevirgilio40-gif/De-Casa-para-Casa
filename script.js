@@ -81,7 +81,7 @@ function updateMenu(){
 }
 
 // SLIDESHOW 
-const slides=["img/00.jpg","img/1.jpg","img/2.jpg","img/3.jpg","img/4.jpg","img/5.jpg"];
+const slides=["IMG/00.jpg","IMG/1.jpg","IMG/2.jpg","IMG/3.jpg","IMG/4.jpg","IMG/5.jpg"];
 let si=0,st=null;
 function renderDots(){
  document.getElementById('slideDots').innerHTML=
