@@ -20,11 +20,11 @@ let editingHouseId = null;
 
 // DARK MODE 
 const modeBtn = document.getElementById('toggleMode');
-if(localStorage.getItem('dcpc_theme')==='dark'){document.body.classList.add('dark');modeBtn.textContent='';}
+if(localStorage.getItem('dcpc_theme')==='dark'){document.body.classList.add('dark');modeBtn.textContent='claro';}
 modeBtn.onclick=()=>{
  document.body.classList.toggle('dark');
  const d=document.body.classList.contains('dark');
- modeBtn.textContent=d?'':'';
+ modeBtn.textContent=d?'escuro':'claro';
  localStorage.setItem('dcpc_theme',d?'dark':'light');
 };
 
