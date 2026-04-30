@@ -20,11 +20,11 @@ let editingHouseId = null;
 
 // DARK MODE 
 const modeBtn = document.getElementById('toggleMode');
-if(localStorage.getItem('dcpc_theme')==='dark'){document.body.classList.add('dark');modeBtn.textContent='claro';}
+if(localStorage.getItem('dcpc_theme')==='dark'){document.body.classList.add('dark');modeBtn.textContent='Claro';}
 modeBtn.onclick=()=>{
  document.body.classList.toggle('dark');
  const d=document.body.classList.contains('dark');
- modeBtn.textContent=d?'escuro':'claro';
+ modeBtn.textContent=d?'Escuro':'Claro';
  localStorage.setItem('dcpc_theme',d?'dark':'light');
 };
 
@@ -152,7 +152,7 @@ document.getElementById('registerBtn').onclick=async()=>{
  });
  await cred.user.sendEmailVerification();
  await auth.signOut();
- toast("Conta criada! Verifica o teu email antes de entrar ","success");
+ toast("Conta criada! Verifica o teu email antes de entrar 📧","success");
  showPage('loginPage');
  }catch(e){
  if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
@@ -317,7 +317,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  const passNew=document.getElementById('pPassNew').value.trim();
  if(!name)return toast("O nome não pode estar vazio!","error");
  const btn=document.getElementById('saveProfileBtn');
- btn.disabled=true;btn.textContent="A guardar...";
+ btn.disabled=true;btn.textContent=" A guardar...";
  try{
  await db.collection('users').doc(currentUser.uid).update({name,phone});
  await auth.currentUser.updateProfile({displayName:name});
@@ -329,7 +329,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  toast("Perfil atualizado!","success");
  updateMenu();
  }catch(e){toast(e.message||"Erro ao guardar.","error");}
- finally{btn.disabled=false;btn.textContent="Guardar Alterações";}
+ finally{btn.disabled=false;btn.textContent="💾 Guardar Alterações";}
 };
 
 // ═══ HOUSES ═══
