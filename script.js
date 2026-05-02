@@ -534,6 +534,23 @@ async function renderHouses(){
   const safeTitle=escapeHtml(h.title);
   const safeZone=escapeHtml(h.zone);
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
+  // Montar 5 linhas de info em parágrafo (fonte Roboto via CSS)
+  const infoLines=[];
+  if(h.zone) infoLines.push(`📍 <span>${escapeHtml(h.zone)}</span>`);
+  const roomParts=[];
+  if(h.rooms>0) roomParts.push(`${h.rooms} quarto${h.rooms>1?'s':''}`);
+  if(h.living>0) roomParts.push(`${h.living} sala${h.living>1?'s':''}`);
+  if(h.bathrooms>0) roomParts.push(`${h.bathrooms} WC`);
+  if(roomParts.length) infoLines.push(`🏠 <span>${roomParts.join(' · ')}</span>`);
+  const extras=[];
+  if(h.electricity) extras.push('Energia');
+  if(h.yard) extras.push('Quintal');
+  if(extras.length) infoLines.push(`✅ <span>${extras.join(' · ')}</span>`);
+  infoLines.push(`💰 <span>${Number(h.price).toLocaleString('pt-PT')} Kz/mês</span>`);
+  infoLines.push(`🔖 <span>${sl[h.status]||'Disponível'}</span>`);
+  const paraHtml=infoLines.slice(0,5).map(l=>`<div class="card-info-line">${l}</div>`).join('');
+  const hjFull=JSON.stringify({title:h.title,ownerContact:h.ownerContact,zone:h.zone,price:h.price,rooms:h.rooms,living:h.living,kitchen:h.kitchen,bathrooms:h.bathrooms,electricity:h.electricity,yard:h.yard,status:h.status,desc:h.desc});
+  const hj=JSON.stringify({title:h.title,ownerContact:h.ownerContact,zone:h.zone,price:h.price});
   div.innerHTML=`
   <div class="card-gallery" id="g-${h.id}">
 <img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos)}' onerror="this.onerror=null;this.src='${ph}'">
@@ -541,17 +558,9 @@ async function renderHouses(){
   <div class="status-badge ${sc}">${sl[sc]||'Disponível'}</div>
 </div>
 <div class="card-body">
-<div class="card-title">${safeTitle}</div>
-  ${h.zone?`<div class="card-zone"> ${safeZone}</div>`:''}
-  <div class="card-features">
-  ${h.rooms>0?`<span class="feature-tag"> ${h.rooms}q</span>`:''}
-  ${h.living>0?`<span class="feature-tag"> ${h.living}s</span>`:''}
-  ${h.bathrooms>0?`<span class="feature-tag"> ${h.bathrooms}wc</span>`:''}
-  ${h.electricity?`<span class="feature-tag"></span>`:''}
-  ${h.yard?`<span class="feature-tag"></span>`:''}
-  </div>
-<div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
-  ${h.desc?`<div class="card-desc">${safeDesc}</div>`:''}
+  <div class="card-title">${safeTitle}</div>
+  <div class="card-info-para">${paraHtml}</div>
+  <button class="btn-ver-mais" onclick='showHouseDetail(${hjFull})'>Ver mais...</button>
   <div class="card-actions"><button class="btn-success" onclick='showContact(${hj})'> Contactar</button></div>
 </div>
   ${currentUser?.isAdmin?`<div class="card-admin-actions"><button class="btn-secondary" onclick="editHouse('${h.id}')"> Editar</button><button class="btn-danger" onclick="delHouse('${h.id}')"> Apagar</button></div>`:''}`;
@@ -573,6 +582,40 @@ function showContact(h){
  const price=document.createTextNode(' '+Number(h.price).toLocaleString('pt-PT')+' Kz/mês');
  info.append(title,br1,br2,contact,br3,zone,br4,price);
  document.getElementById('contactModal').classList.remove('hidden');
+}
+
+// MODAL VER MAIS — todos os detalhes da casa (fonte Roboto via CSS)
+function showHouseDetail(h){
+ document.getElementById('hdTitle').textContent=h.title||'Detalhes da Casa';
+ const sl={disponivel:'Disponível',reservada:'Reservada',arrendada:'Arrendada'};
+ const rows=[
+  {label:'Zona',value:h.zone||'—'},
+  {label:'Quartos',value:h.rooms>0?h.rooms+' quarto'+(h.rooms>1?'s':''):'—'},
+  {label:'Salas',value:h.living>0?h.living+' sala'+(h.living>1?'s':''):'—'},
+  {label:'Cozinhas',value:h.kitchen>0?h.kitchen+' cozinha'+(h.kitchen>1?'s':''):'—'},
+  {label:'WC',value:h.bathrooms>0?h.bathrooms+' WC':'—'},
+  {label:'Energia',value:h.electricity?'Sim':'Não'},
+  {label:'Quintal',value:h.yard?'Sim':'Não'},
+  {label:'Preço',value:Number(h.price).toLocaleString('pt-PT')+' Kz/mês'},
+  {label:'Estado',value:sl[h.status]||'Disponível'},
+  {label:'Contacto',value:h.ownerContact||'—'},
+ ];
+ const content=document.getElementById('hdContent');
+ content.innerHTML='';
+ rows.forEach(r=>{
+  const row=document.createElement('div');row.className='hd-row';
+  const lbl=document.createElement('span');lbl.className='hd-label';lbl.textContent=r.label;
+  const val=document.createElement('span');val.className='hd-value';val.textContent=r.value;
+  row.append(lbl,val);content.appendChild(row);
+ });
+ if(h.desc){
+  const descDiv=document.createElement('div');descDiv.className='hd-desc';
+  const descTitle=document.createElement('strong');descTitle.textContent='Descrição';
+  const descText=document.createTextNode(h.desc);
+  descDiv.append(descTitle,descText);
+  content.appendChild(descDiv);
+ }
+ document.getElementById('houseDetailModal').classList.remove('hidden');
 }
 
 // FIX Bug#6 — gNav definida uma única vez, com suporte a vídeo integrado (removido _origGNav)
@@ -641,7 +684,7 @@ async function loadAdmin(){
 </div>
 <div class="user-item-actions">
    ${!isSelf?(u.isAdmin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.uid}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.uid}',true)">+ Admin</button>`):''}
-   ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.uid}')">❌</button>`:''}
+   ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.uid}')"></button>`:''}
    </div>`;
    list.appendChild(item);
   });
