@@ -641,7 +641,7 @@ async function loadAdmin(){
 </div>
 <div class="user-item-actions">
    ${!isSelf?(u.isAdmin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.uid}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.uid}',true)">+ Admin</button>`):''}
-   ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.uid}')"></button>`:''}
+   ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.uid}')">❌</button>`:''}
    </div>`;
    list.appendChild(item);
   });
