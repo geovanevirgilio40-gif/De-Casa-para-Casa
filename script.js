@@ -544,11 +544,11 @@ async function renderHouses(){
 <div class="card-title">${safeTitle}</div>
   ${h.zone?`<div class="card-zone"> ${safeZone}</div>`:''}
   <div class="card-features">
-  ${h.rooms>0?`<span class="feature-tag"> ${h.rooms} quarto</span>`:''}
-  ${h.living>0?`<span class="feature-tag"> ${h.living} sala</span>`:''}
-  ${h.bathrooms>0?`<span class="feature-tag"> ${h.bathrooms} wc</span>`:''}
-  ${h.electricity?`<span class="feature-tag"> com energia</span>`:'<span class="feature-tag">sem energia</span>'}
-  ${h.yard?`<span class="feature-tag">com quintal</span>`:'<span class="feature-tag">sem quintal</span>'}
+  ${h.rooms>0?`<span class="feature-tag">Quarto: ${h.rooms}</span>`:''}
+  ${h.living>0?`<span class="feature-tag">Sala: ${h.living}</span>`:''}
+  ${h.bathrooms>0?`<span class="feature-tag">WC: ${h.bathrooms}</span>`:''}
+  ${h.electricity?`<span class="feature-tag">Com Energia</span>`:'<span class="feature-tag">Sem Qnergia</span>'}
+  ${h.yard?`<span class="feature-tag">Com Quintal</span>`:'<span class="feature-tag">Sem Quintal</span>'}
   </div>
 <div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
   ${h.desc?`<div class="card-desc">${safeDesc}</div>`:''}
