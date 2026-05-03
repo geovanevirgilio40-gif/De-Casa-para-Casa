@@ -544,11 +544,11 @@ async function renderHouses(){
 <div class="card-title">${safeTitle}</div>
   ${h.zone?`<div class="card-zone"> ${safeZone}</div>`:''}
   <div class="card-features">
-  ${h.rooms>0?`<span class="feature-tag"> ${h.rooms}q</span>`:''}
-  ${h.living>0?`<span class="feature-tag"> ${h.living}s</span>`:''}
+  ${h.rooms>0?`<span class="feature-tag"> ${h.rooms}quarto</span>`:''}
+  ${h.living>0?`<span class="feature-tag"> ${h.living}sala</span>`:''}
   ${h.bathrooms>0?`<span class="feature-tag"> ${h.bathrooms}wc</span>`:''}
-  ${h.electricity?`<span class="feature-tag"></span>`:''}
-  ${h.yard?`<span class="feature-tag"></span>`:''}
+  ${h.electricity?`<span class="feature-tag"> com energia</span>`:'sem energia'}
+  ${h.yard?`<span class="feature-tag">com quintal</span>`:'sem quintal'}
   </div>
 <div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
   ${h.desc?`<div class="card-desc">${safeDesc}</div>`:''}
