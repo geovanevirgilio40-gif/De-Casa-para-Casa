@@ -536,7 +536,7 @@ async function renderHouses(){
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
   div.innerHTML=`
   <div class="card-gallery" id="g-${h.id}">
-<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos)}' onerror="this.onerror=null;this.src='${ph}'">
+<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos)}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" ondblclick="openLightbox(${JSON.stringify(photos)},0)">
   ${photos.length>1?`<button class="gallery-btn gallery-prev" onclick="gNav('${h.id}',-1)">‹</button><button class="gallery-btn gallery-next" onclick="gNav('${h.id}',1)">›</button><div class="gallery-count"><span id="gc-${h.id}">1</span>/${photos.length}</div>`:''}
   <div class="status-badge ${sc}">${sl[sc]||'Disponível'}</div>
 </div>
