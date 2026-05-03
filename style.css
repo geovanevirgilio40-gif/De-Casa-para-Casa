@@ -178,21 +178,6 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
   input,select,textarea{font-size:16px;}
 }
 
-/* ── CARD INFO PARÁGRAFO (fonte Roboto) ── */
-.card-info-para{font-family:'Roboto',sans-serif;font-size:13px;color:var(--text2);margin-bottom:10px;}
-.card-info-line{margin-bottom:4px;line-height:1.6;}
-.card-info-line span{color:var(--text);font-weight:500;}
-.btn-ver-mais{background:transparent;border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;width:auto;margin:0 0 10px 0;cursor:pointer;transition:all .2s;font-family:'Roboto',sans-serif;}
-.btn-ver-mais:hover{background:var(--accent);color:#fff;transform:none;}
-
-/* ── MODAL DETALHE CASA ── */
-.hd-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-family:'Roboto',sans-serif;}
-.hd-row:last-child{border-bottom:none;}
-.hd-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);}
-.hd-value{font-size:14px;color:var(--text);font-weight:500;text-align:right;max-width:60%;}
-.hd-desc{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-family:'Roboto',sans-serif;font-size:14px;color:var(--text2);line-height:1.75;}
-.hd-desc strong{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text2);margin-bottom:6px;}
-
 /* ── LIGHTBOX ── */
 #lightbox{display:none;}
 #lightbox.open{display:flex;}
