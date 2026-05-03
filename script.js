@@ -546,6 +546,7 @@ async function renderHouses(){
   <div class="card-features">
   ${h.rooms>0?`<span class="feature-tag">Quarto: ${h.rooms}</span>`:''}
   ${h.living>0?`<span class="feature-tag">Sala: ${h.living}</span>`:''}
+  ${h.kitchen>0?`<span class="feature-tag">Cozinha: ${h.kitchen}</span>`:''}
   ${h.bathrooms>0?`<span class="feature-tag">WC: ${h.bathrooms}</span>`:''}
   ${h.electricity?`<span class="feature-tag">Com Energia</span>`:'<span class="feature-tag">Sem Qnergia</span>'}
   ${h.yard?`<span class="feature-tag">Com Quintal</span>`:'<span class="feature-tag">Sem Quintal</span>'}
