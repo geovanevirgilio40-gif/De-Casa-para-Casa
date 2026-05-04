@@ -159,6 +159,7 @@ document.getElementById('registerBtn').onclick=async()=>{
   if(fakedomains.includes(domain)) return toast("Este domínio de email não é permitido!","error");
   const btn=document.getElementById('registerBtn');
   btn.disabled=true;btn.textContent="⏳ A criar conta...";
+  _suppressAuthChange=true;
   try{
     const {data,error}=await sb.auth.signUp({
       email,password:pass,
@@ -173,6 +174,7 @@ document.getElementById('registerBtn').onclick=async()=>{
   }catch(e){
     toast(errMsg(e),"error");
   }finally{
+    _suppressAuthChange=false;
     btn.disabled=false;btn.textContent="Confirmar Cadastro";
   }
 };
@@ -294,6 +296,16 @@ setTimeout(hideLoader,8000);
 
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(_suppressAuthChange) return;
+  // Bug#7 — tratar recuperação de password
+  if(event==='PASSWORD_RECOVERY'){
+    const newPass=prompt('Define a tua nova password (mínimo 6 caracteres):');
+    if(newPass&&newPass.length>=6){
+      const {error}=await sb.auth.updateUser({password:newPass});
+      if(error) toast("Erro ao atualizar password: "+error.message,"error");
+      else toast("Password atualizada com sucesso!","success");
+    }
+    return;
+  }
   if(session?.user){
     try{
       const {data}=await sb.from('users').select('*').eq('id',session.user.id).single();
@@ -334,18 +346,22 @@ async function loginWithGoogle(){
   }
 }
 
-// Criar perfil Google se não existir
+// Criar perfil Google se não existir (só após OAuth redirect)
 sb.auth.getSession().then(async({data:{session}})=>{
   if(!session) return;
+  // Só cria perfil se veio de um redirect OAuth (provider_token presente)
   const user=session.user;
-  const {data:existing}=await sb.from('users').select('id').eq('id',user.id).single();
-  if(!existing){
-    await sb.from('users').insert({
-      id:user.id,
-      name:user.user_metadata?.full_name||'Utilizador',
-      phone:'',email:user.email,is_admin:false
-    });
-  }
+  if(!user.app_metadata?.provider||user.app_metadata.provider==='email') return;
+  try{
+    const {data:existing}=await sb.from('users').select('id').eq('id',user.id).maybeSingle();
+    if(!existing){
+      await sb.from('users').insert({
+        id:user.id,
+        name:user.user_metadata?.full_name||'Utilizador',
+        phone:'',email:user.email,is_admin:false
+      });
+    }
+  }catch(e){}
 });
 
 // ─────────────────────────────────────────
@@ -372,6 +388,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
     if(passNew){
       if(passNew.length<6){
         toast("Password: mínimo 6 caracteres!","error");
+        btn.disabled=false;btn.textContent="Guardar Alterações";
         return;
       }
       const {error}=await sb.auth.updateUser({password:passNew});
@@ -434,7 +451,10 @@ function compressImg(file,maxW,q){
         if(w>maxW){h=h*maxW/w;w=maxW;}
         c.width=w;c.height=h;
         c.getContext('2d').drawImage(img,0,0,w,h);
-        c.toBlob(blob=>resolve(blob),'image/jpeg',q);
+        c.toBlob(blob=>{
+          if(!blob) return reject(new Error('Falha ao comprimir imagem'));
+          resolve(blob);
+        },'image/jpeg',q);
       };
       img.src=e.target.result;
     };
@@ -465,24 +485,27 @@ document.getElementById('saveHouse').onclick=async()=>{
     let mediaUrls=[];
     if(files.length>0){
       prog.style.display='block';
-      for(let i=0;i<files.length;i++){
-        prog.textContent=`A enviar ficheiro ${i+1} de ${files.length}...`;
-        const file=files[i];
-        const isVid=file.type.startsWith('video/');
-        const ext=file.name.split('.').pop().toLowerCase();
-        const path=`houses/${currentUser.uid}_${Date.now()}_${i}.${ext}`;
-        let uploadFile=file;
-        if(!isVid){
-          uploadFile=await compressImg(file,800,0.75);
+      try{
+        for(let i=0;i<files.length;i++){
+          prog.textContent=`A enviar ficheiro ${i+1} de ${files.length}...`;
+          const file=files[i];
+          const isVid=file.type.startsWith('video/');
+          const ext=file.name.split('.').pop().toLowerCase();
+          const path=`houses/${currentUser.uid}_${Date.now()}_${i}.${ext}`;
+          let uploadFile=file;
+          if(!isVid){
+            uploadFile=await compressImg(file,800,0.75);
+          }
+          const {error:upErr}=await sb.storage.from('houses-media').upload(path,uploadFile,{
+            contentType:isVid?file.type:'image/jpeg',upsert:true
+          });
+          if(upErr) throw upErr;
+          const {data:urlData}=sb.storage.from('houses-media').getPublicUrl(path);
+          mediaUrls.push(urlData.publicUrl);
         }
-        const {error:upErr}=await sb.storage.from('houses-media').upload(path,uploadFile,{
-          contentType:isVid?file.type:'image/jpeg',upsert:false
-        });
-        if(upErr) throw upErr;
-        const {data:urlData}=sb.storage.from('houses-media').getPublicUrl(path);
-        mediaUrls.push(urlData.publicUrl);
+      }finally{
+        prog.style.display='none';
       }
-      prog.style.display='none';
     }
     const editId=document.getElementById('editHouseId').value;
     const data={title,zone,status,rooms,living,kitchen,bathrooms,electricity,yard,price,owner_contact:ownerContact,desc};
@@ -512,7 +535,7 @@ function setFilter(mode,el){
   filterModeActive=mode;
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  renderHouses();
+  if(allHouses.length) filterAndRender(); else renderHouses();
 }
 function toggleAdvFilter(el){
   document.getElementById('advancedFilter').classList.toggle('open');
@@ -537,10 +560,15 @@ async function renderHouses(){
     list.innerHTML='<div class="empty-state"><div class="empty-icon">🏠</div><p>Erro ao carregar casas.<br>Verifica a tua ligação.</p></div>';
     return;
   }
+  filterAndRender();
+}
+
+function filterAndRender(){
+  const list=document.getElementById('houseList');
   const search=(document.getElementById('searchInput')?.value||'').toLowerCase();
   const maxPrice=parseFloat(document.getElementById('filterMaxPrice')?.value)||Infinity;
   const minRooms=parseInt(document.getElementById('filterMinRooms')?.value)||0;
-  let houses=allHouses.filter(h=>{
+  const houses=allHouses.filter(h=>{
     const ms=(h.title||'').toLowerCase().includes(search)||(h.zone||'').toLowerCase().includes(search)||String(h.price).includes(search);
     const mf=filterModeActive==='todos'?true:filterModeActive==='disponivel'?(!h.status||h.status==='disponivel'):filterModeActive==='reservada'?h.status==='reservada':filterModeActive==='quintal'?h.yard:filterModeActive==='energia'?h.electricity:true;
     return ms&&mf&&parseFloat(h.price)<=maxPrice&&parseInt(h.rooms||0)>=minRooms;
@@ -657,8 +685,11 @@ function delHouse(id){
     const house=allHouses.find(h=>h.id===id);
     if(house?.media_urls?.length){
       const paths=house.media_urls.map(url=>{
-        const parts=url.split('/houses-media/');
-        return parts[1]||null;
+        try{
+          const u=new URL(url);
+          const parts=u.pathname.split('/houses-media/');
+          return parts[1]?decodeURIComponent(parts[1]):null;
+        }catch(e){return null;}
       }).filter(Boolean);
       if(paths.length) await sb.storage.from('houses-media').remove(paths);
     }
@@ -668,7 +699,9 @@ function delHouse(id){
   });
 }
 
-document.getElementById('searchInput').addEventListener('input',()=>renderHouses());
+document.getElementById('searchInput').addEventListener('input',()=>{
+  if(allHouses.length) filterAndRender(); else renderHouses();
+});
 
 // ─────────────────────────────────────────
 // ADMIN
@@ -708,14 +741,16 @@ async function loadAdmin(){
 }
 
 async function setAdmin(uid,val){
-  await sb.from('users').update({is_admin:val}).eq('id',uid);
+  const {error}=await sb.from('users').update({is_admin:val}).eq('id',uid);
+  if(error) return toast("Erro ao atualizar admin: "+error.message,"error");
   toast(val?"Admin adicionado!":"Admin removido.","success");
   loadAdmin();
 }
 
 function delUser(uid){
   showModal('Apagar utilizador','Esta ação é permanente. Confirmas?','Apagar',async()=>{
-    await sb.from('users').delete().eq('id',uid);
+    const {error}=await sb.from('users').delete().eq('id',uid);
+    if(error) return toast("Erro ao apagar utilizador: "+error.message,"error");
     toast("Utilizador apagado.","success");
     loadAdmin();
   });
