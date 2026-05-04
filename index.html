@@ -50,7 +50,7 @@
 </div>
 <hr class="divider">
 <div class="slideshow-wrap">
-<img src="IMG/01.jpg" alt="Casa" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3Ctext y=%2255%25%22 x=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2248%22%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E'">
+<img src="IMG/01.jpg" alt="Casa" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22200%22%3E%3Crect fill=%22%23c8873a22%22 width=%22400%22 height=%22200%22/%3E%3C/svg%3E'">
 </div>
 <button id="btnRegister"> Criar Conta</button>
 <button class="btn-secondary" id="btnLogin">Já tenho conta — Entrar</button>
@@ -76,7 +76,7 @@
 <div style="flex:1;height:1px;background:var(--border);"></div>
 </div>
 <button id="googleRegisterBtn" style="background:#fff;color:#444;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:10px;">
-<img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:20px;height:20px;">
+<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;">
  Continuar com Google
  </button>
 </div>
@@ -92,7 +92,7 @@
 <div style="flex:1;height:1px;background:var(--border);"></div>
 </div>
 <button id="googleLoginBtn" style="background:#fff;color:#444;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:10px;">
-<img src="https://www.svgrepo.com/show/475656/google-color.svg" style="width:20px;height:20px;">
+<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px;height:20px;">
  Entrar com Google
  </button>
 <div id="resendVerif" class="hidden" style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:8px;text-align:center;">
@@ -272,7 +272,7 @@
 </div>
 
 <!-- LIGHTBOX -->
-<div id="lightbox" style="position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="closeLightbox()">
+<div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="closeLightbox()">
   <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10;margin:0;padding:0;width:44px;">✕</button>
   <button id="lbPrev" onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">‹</button>
   <button id="lbNext" onclick="event.stopPropagation();lbNav(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">›</button>
@@ -300,9 +300,11 @@
 <div class="modal-actions"><button onclick="document.getElementById('contactModal').classList.add('hidden')">Fechar</button></div>
 </div>
 </div>
-<!-- SUPABASE SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- APP JS -->
+<!-- FIREBASE SDKs PRIMEIRO - OBRIGATÓRIO -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- APP JS DEPOIS DO FIREBASE -->
 <script src="script.js"></script>
 </body>
 </html>
