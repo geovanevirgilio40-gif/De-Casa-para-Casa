@@ -166,8 +166,8 @@ document.getElementById('registerBtn').onclick=async()=>{
       options:{data:{name,phone}}
     });
     if(error) throw error;
-    await sb.from('users').insert({
-      id:data.user.id,name,phone,email,is_admin:false
+    await sb.from('usuário').insert({
+      id:data.user.id,nome:name,telefone:phone,'e-mail':email,admin:false
     });
     toast("Conta criada! Verifica o teu email antes de entrar 📧","success");
     showPage('loginPage');
@@ -308,13 +308,13 @@ sb.auth.onAuthStateChange(async(event,session)=>{
   }
   if(session?.user){
     try{
-      const {data}=await sb.from('users').select('*').eq('id',session.user.id).single();
+      const {data}=await sb.from('usuário').select('*').eq('id',session.user.id).single();
       currentUser={
         uid:session.user.id,
         email:session.user.email,
-        name:data?.name||session.user.user_metadata?.name||'Utilizador',
-        phone:data?.phone||'',
-        isAdmin:data?.is_admin||false
+        name:data?.nome||session.user.user_metadata?.name||'Utilizador',
+        phone:data?.telefone||'',
+        isAdmin:data?.admin||false
       };
     }catch(e){
       currentUser={uid:session.user.id,email:session.user.email,name:'Utilizador',phone:'',isAdmin:false};
@@ -353,12 +353,12 @@ sb.auth.getSession().then(async({data:{session}})=>{
   const user=session.user;
   if(!user.app_metadata?.provider||user.app_metadata.provider==='email') return;
   try{
-    const {data:existing}=await sb.from('users').select('id').eq('id',user.id).maybeSingle();
+    const {data:existing}=await sb.from('usuário').select('id').eq('id',user.id).maybeSingle();
     if(!existing){
-      await sb.from('users').insert({
+      await sb.from('usuário').insert({
         id:user.id,
-        name:user.user_metadata?.full_name||'Utilizador',
-        phone:'',email:user.email,is_admin:false
+        nome:user.user_metadata?.full_name||'Utilizador',
+        telefone:'','e-mail':user.email,admin:false
       });
     }
   }catch(e){}
@@ -384,7 +384,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
   const btn=document.getElementById('saveProfileBtn');
   btn.disabled=true;btn.textContent="⏳ A guardar...";
   try{
-    await sb.from('users').update({name,phone}).eq('id',currentUser.uid);
+    await sb.from('usuário').update({nome:name,telefone:phone}).eq('id',currentUser.uid);
     if(passNew){
       if(passNew.length<6){
         toast("Password: mínimo 6 caracteres!","error");
@@ -422,18 +422,18 @@ function editHouse(id){
   editingHouseId=id;
   document.getElementById('editHouseId').value=id;
   document.getElementById('rentPageTitle').textContent='Editar Casa';
-  document.getElementById('title').value=h.title||'';
-  document.getElementById('zone').value=h.zone||'';
-  document.getElementById('rooms').value=h.rooms||'';
-  document.getElementById('living').value=h.living||'';
-  document.getElementById('kitchen').value=h.kitchen||'';
-  document.getElementById('bathrooms').value=h.bathrooms||'';
-  document.getElementById('price').value=h.price||'';
-  document.getElementById('ownerContact').value=h.owner_contact||'';
-  document.getElementById('desc').value=h.desc||'';
-  document.getElementById('electricity').value=String(h.electricity);
-  document.getElementById('yard').value=String(h.yard);
-  document.getElementById('houseStatus').value=h.status||'disponivel';
+  document.getElementById('title').value=h.titulo||'';
+  document.getElementById('zone').value=h.zona||'';
+  document.getElementById('rooms').value=h.quartos||'';
+  document.getElementById('living').value=h.salas||'';
+  document.getElementById('kitchen').value=h.cozinhas||'';
+  document.getElementById('bathrooms').value=h.wc||'';
+  document.getElementById('price').value=h.preco||'';
+  document.getElementById('ownerContact').value=h.contacto_proprietario||'';
+  document.getElementById('desc').value=h.descricao||'';
+  document.getElementById('electricity').value=String(h.energia);
+  document.getElementById('yard').value=String(h.quintal);
+  document.getElementById('houseStatus').value=h.estado||'disponivel';
   showPage('rentPage');
 }
 
@@ -508,17 +508,17 @@ document.getElementById('saveHouse').onclick=async()=>{
       }
     }
     const editId=document.getElementById('editHouseId').value;
-    const data={title,zone,status,rooms,living,kitchen,bathrooms,electricity,yard,price,owner_contact:ownerContact,desc};
+    const data={titulo:title,zona:zone,estado:status,quartos:rooms,salas:living,cozinhas:kitchen,wc:bathrooms,energia:electricity,quintal:yard,preco:price,contacto_proprietario:ownerContact,descricao:desc};
     if(editId){
-      if(mediaUrls.length===0) mediaUrls=allHouses.find(h=>h.id===editId)?.media_urls||[];
-      data.media_urls=mediaUrls;
-      const {error}=await sb.from('houses').update({...data,updated_at:new Date().toISOString()}).eq('id',editId);
+      if(mediaUrls.length===0) mediaUrls=allHouses.find(h=>h.id===editId)?.ficheiros_media||[];
+      data.ficheiros_media=mediaUrls;
+      const {error}=await sb.from('casas').update({...data,atualizado_em:new Date().toISOString()}).eq('id',editId);
       if(error) throw error;
       toast("Casa atualizada!","success");
     }else{
-      data.media_urls=mediaUrls;
-      data.created_by=currentUser.uid;
-      const {error}=await sb.from('houses').insert(data);
+      data.ficheiros_media=mediaUrls;
+      data.criado_por=currentUser.uid;
+      const {error}=await sb.from('casas').insert(data);
       if(error) throw error;
       toast("Casa cadastrada!","success");
     }
@@ -553,7 +553,7 @@ async function renderHouses(){
   const list=document.getElementById('houseList');
   list.innerHTML='<div class="spinner"></div>';
   try{
-    const {data,error}=await sb.from('houses').select('*').order('created_at',{ascending:false});
+    const {data,error}=await sb.from('casas').select('*').order('criado_em',{ascending:false});
     if(error) throw error;
     allHouses=data||[];
   }catch(e){
@@ -569,9 +569,9 @@ function filterAndRender(){
   const maxPrice=parseFloat(document.getElementById('filterMaxPrice')?.value)||Infinity;
   const minRooms=parseInt(document.getElementById('filterMinRooms')?.value)||0;
   const houses=allHouses.filter(h=>{
-    const ms=(h.title||'').toLowerCase().includes(search)||(h.zone||'').toLowerCase().includes(search)||String(h.price).includes(search);
-    const mf=filterModeActive==='todos'?true:filterModeActive==='disponivel'?(!h.status||h.status==='disponivel'):filterModeActive==='reservada'?h.status==='reservada':filterModeActive==='quintal'?h.yard:filterModeActive==='energia'?h.electricity:true;
-    return ms&&mf&&parseFloat(h.price)<=maxPrice&&parseInt(h.rooms||0)>=minRooms;
+    const ms=(h.titulo||'').toLowerCase().includes(search)||(h.zona||'').toLowerCase().includes(search)||String(h.preco).includes(search);
+    const mf=filterModeActive==='todos'?true:filterModeActive==='disponivel'?(!h.estado||h.estado==='disponivel'):filterModeActive==='reservada'?h.estado==='reservada':filterModeActive==='quintal'?h.quintal:filterModeActive==='energia'?h.energia:true;
+    return ms&&mf&&parseFloat(h.preco)<=maxPrice&&parseInt(h.quartos||0)>=minRooms;
   });
   list.innerHTML='';
   if(!houses.length){
@@ -582,12 +582,12 @@ function filterAndRender(){
   const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
   houses.forEach(h=>{
     const div=document.createElement('div');div.className='house-card';
-    const photos=h.media_urls&&h.media_urls.length?h.media_urls:[];
-    const sc=h.status||'disponivel';
-    const hj=JSON.stringify({title:h.title,ownerContact:h.owner_contact,zone:h.zone,price:h.price});
-    const safeTitle=escapeHtml(h.title);
-    const safeZone=escapeHtml(h.zone);
-    const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
+    const photos=h.ficheiros_media&&h.ficheiros_media.length?h.ficheiros_media:[];
+    const sc=h.estado||'disponivel';
+    const hj=JSON.stringify({title:h.titulo,ownerContact:h.contacto_proprietario,zone:h.zona,price:h.preco});
+    const safeTitle=escapeHtml(h.titulo);
+    const safeZone=escapeHtml(h.zona);
+    const safeDesc=h.descricao?escapeHtml(h.descricao.length>100?h.descricao.slice(0,100)+'…':h.descricao):'';
     div.innerHTML=`
     <div class="card-gallery" id="g-${h.id}">
       <img src="${photos[0]||ph}" alt="foto" data-idx="0" data-houseid="${h.id}" onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" ondblclick="openLightboxById('${h.id}',0)">
@@ -596,17 +596,17 @@ function filterAndRender(){
     </div>
     <div class="card-body">
       <div class="card-title">${safeTitle}</div>
-      ${h.zone?`<div class="card-zone">📍 ${safeZone}</div>`:''}
+      ${h.zona?`<div class="card-zone">📍 ${safeZone}</div>`:''}
       <div class="card-features">
-        ${h.rooms>0?`<span class="feature-tag">Quarto: ${h.rooms}</span>`:''}
-        ${h.living>0?`<span class="feature-tag">Sala: ${h.living}</span>`:''}
-        ${h.kitchen>0?`<span class="feature-tag">Cozinha: ${h.kitchen}</span>`:''}
-        ${h.bathrooms>0?`<span class="feature-tag">WC: ${h.bathrooms}</span>`:''}
-        <span class="feature-tag">${h.electricity?'Com Energia':'Sem Energia'}</span>
-        <span class="feature-tag">${h.yard?'Com Quintal':'Sem Quintal'}</span>
+        ${h.quartos>0?`<span class="feature-tag">Quarto: ${h.quartos}</span>`:''}
+        ${h.salas>0?`<span class="feature-tag">Sala: ${h.salas}</span>`:''}
+        ${h.cozinhas>0?`<span class="feature-tag">Cozinha: ${h.cozinhas}</span>`:''}
+        ${h.wc>0?`<span class="feature-tag">WC: ${h.wc}</span>`:''}
+        <span class="feature-tag">${h.energia?'Com Energia':'Sem Energia'}</span>
+        <span class="feature-tag">${h.quintal?'Com Quintal':'Sem Quintal'}</span>
       </div>
-      <div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
-      ${h.desc?`<div class="card-desc">${safeDesc}</div>`:''}
+      <div class="card-price">${Number(h.preco).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
+      ${h.descricao?`<div class="card-desc">${safeDesc}</div>`:''}
       <div class="card-actions"><button class="btn-success" onclick='showContact(${hj})'>📞 Contactar</button></div>
     </div>
     ${currentUser?.isAdmin?`<div class="card-admin-actions"><button class="btn-secondary" onclick="editHouse('${h.id}')">✏️ Editar</button><button class="btn-danger" onclick="delHouse('${h.id}')">🗑️ Apagar</button></div>`:''}`;
@@ -652,7 +652,7 @@ function gNav(id,dir){
   if(!g) return;
   const house=allHouses.find(h=>h.id===id);
   if(!house) return;
-  const photos=house.media_urls&&house.media_urls.length?house.media_urls:[];
+  const photos=house.ficheiros_media&&house.ficheiros_media.length?house.ficheiros_media:[];
   if(photos.length<=1) return;
   const media=g.querySelector('[data-idx]');
   let idx=parseInt(media?.dataset.idx||0)+dir;
@@ -683,8 +683,8 @@ function gNav(id,dir){
 function delHouse(id){
   showModal('Apagar casa','Esta ação é irreversível. Confirmas?','Apagar',async()=>{
     const house=allHouses.find(h=>h.id===id);
-    if(house?.media_urls?.length){
-      const paths=house.media_urls.map(url=>{
+    if(house?.ficheiros_media?.length){
+      const paths=house.ficheiros_media.map(url=>{
         try{
           const u=new URL(url);
           const parts=u.pathname.split('/houses-media/');
@@ -693,7 +693,7 @@ function delHouse(id){
       }).filter(Boolean);
       if(paths.length) await sb.storage.from('houses-media').remove(paths);
     }
-    await sb.from('houses').delete().eq('id',id);
+    await sb.from('casas').delete().eq('id',id);
     toast("Casa apagada.","success");
     renderHouses();
   });
@@ -710,10 +710,10 @@ async function loadAdmin(){
   if(!currentUser?.isAdmin){toast("Acesso negado!","error");showPage('menuPage');return;}
   try{
     const [{data:users},{data:houses}]=await Promise.all([
-      sb.from('users').select('*'),
-      sb.from('houses').select('*')
+      sb.from('usuário').select('*'),
+      sb.from('casas').select('*')
     ]);
-    const avail=(houses||[]).filter(h=>!h.status||h.status==='disponivel').length;
+    const avail=(houses||[]).filter(h=>!h.estado||h.estado==='disponivel').length;
     document.getElementById('adminStats').innerHTML=`
     <div class="stat-card"><span class="stat-num">${(users||[]).length}</span><span class="stat-label">Utilizadores</span></div>
     <div class="stat-card"><span class="stat-num">${(houses||[]).length}</span><span class="stat-label">Casas</span></div>
@@ -724,13 +724,13 @@ async function loadAdmin(){
       const isSelf=u.id===currentUser.uid;
       const item=document.createElement('div');item.className='user-item';
       item.innerHTML=`
-      <div class="user-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">${escapeHtml((u.name||'?')[0].toUpperCase())}</div>
+      <div class="user-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">${escapeHtml((u.nome||'?')[0].toUpperCase())}</div>
       <div class="user-item-info">
-        <strong>${escapeHtml(u.name||'—')} ${u.is_admin?'<span class="admin-badge">ADMIN</span>':''} ${isSelf?'<span style="font-size:10px;color:var(--text2);">(você)</span>':''}</strong>
-        <span>📞 ${escapeHtml(u.phone||'—')} · ${escapeHtml(u.email||'—')}</span>
+        <strong>${escapeHtml(u.nome||'—')} ${u.admin?'<span class="admin-badge">ADMIN</span>':''} ${isSelf?'<span style="font-size:10px;color:var(--text2);">(você)</span>':''}</strong>
+        <span>📞 ${escapeHtml(u.telefone||'—')} · ${escapeHtml(u['e-mail']||'—')}</span>
       </div>
       <div class="user-item-actions">
-        ${!isSelf?(u.is_admin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.id}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.id}',true)">+ Admin</button>`):''}
+        ${!isSelf?(u.admin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.id}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.id}',true)">+ Admin</button>`):''}
         ${!isSelf?`<button class="btn-secondary btn-sm" onclick="delUser('${u.id}')">❌</button>`:''}
       </div>`;
       list.appendChild(item);
@@ -741,7 +741,7 @@ async function loadAdmin(){
 }
 
 async function setAdmin(uid,val){
-  const {error}=await sb.from('users').update({is_admin:val}).eq('id',uid);
+  const {error}=await sb.from('usuário').update({admin:val}).eq('id',uid);
   if(error) return toast("Erro ao atualizar admin: "+error.message,"error");
   toast(val?"Admin adicionado!":"Admin removido.","success");
   loadAdmin();
@@ -749,7 +749,7 @@ async function setAdmin(uid,val){
 
 function delUser(uid){
   showModal('Apagar utilizador','Esta ação é permanente. Confirmas?','Apagar',async()=>{
-    const {error}=await sb.from('users').delete().eq('id',uid);
+    const {error}=await sb.from('usuário').delete().eq('id',uid);
     if(error) return toast("Erro ao apagar utilizador: "+error.message,"error");
     toast("Utilizador apagado.","success");
     loadAdmin();
@@ -778,7 +778,7 @@ let _lbMedia=[],_lbIdx=0;
 function openLightboxById(id,idx){
   const h=allHouses.find(h=>h.id===id);
   if(!h) return;
-  const media=h.media_urls&&h.media_urls.length?h.media_urls:[];
+  const media=h.ficheiros_media&&h.ficheiros_media.length?h.ficheiros_media:[];
   if(!media.length) return;
   openLightbox(media,idx);
 }
