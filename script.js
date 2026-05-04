@@ -18,7 +18,7 @@ const db = firebase.firestore();
 // 
 const SUPABASE_URL = "https://jbyfjbpmhjbbxlwkxfus.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieWZqYnBtaGpiYnhsd2t4ZnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTY3MzAsImV4cCI6MjA5MzQ5MjczMH0.YSaYl4pmJnnikcBB3Ka9udxecFDf70ImKr7czYEruwk";
-const SUPABASE_BUCKET = "CASAS";
+const SUPABASE_BUCKET = "Casas";
 
 // Teste automático de ligação ao Supabase — mostra resultado no ecrã
 (async()=>{
