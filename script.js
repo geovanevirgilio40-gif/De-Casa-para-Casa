@@ -20,40 +20,7 @@ const SUPABASE_URL = "https://jbyfjbpmhjbbxlwkxfus.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieWZqYnBtaGpiYnhsd2t4ZnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTY3MzAsImV4cCI6MjA5MzQ5MjczMH0.YSaYl4pmJnnikcBB3Ka9udxecFDf70ImKr7czYEruwk";
 const SUPABASE_BUCKET = "Casas";
 
-// Teste automático de ligação ao Supabase — mostra resultado no ecrã
-(async()=>{
- try{
-  // 1. Verificar se o bucket existe
-  const r1=await fetch(`${SUPABASE_URL}/storage/v1/bucket/${SUPABASE_BUCKET}`,{
-   headers:{"Authorization":`Bearer ${SUPABASE_ANON_KEY}`,"apikey":SUPABASE_ANON_KEY}
-  });
-  const j1=await r1.json().catch(()=>({}));
-  if(!r1.ok){
-   console.error("❌ Bucket erro:",r1.status,j1);
-   setTimeout(()=>toast(`❌ Bucket '${SUPABASE_BUCKET}': ${j1.message||r1.status}`,"error"),1500);
-   return;
-  }
-  // 2. Tentar upload de um ficheiro de teste (1 pixel PNG)
-  const testBlob=new Blob([new Uint8Array([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,2,0,0,0,144,119,83,222,0,0,0,12,73,68,65,84,8,215,99,248,207,192,0,0,0,2,0,1,226,33,188,51,0,0,0,0,73,69,78,68,174,66,96,130])],{type:'image/png'});
-  const testPath=`_test/ping_${Date.now()}.png`;
-  const r2=await fetch(`${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${testPath}`,{
-   method:"POST",
-   headers:{"Authorization":`Bearer ${SUPABASE_ANON_KEY}`,"apikey":SUPABASE_ANON_KEY,"Content-Type":"image/png","x-upsert":"true"},
-   body:testBlob
-  });
-  const j2=await r2.json().catch(()=>({}));
-  if(r2.ok){
-   console.log("✅ Supabase Storage OK — upload de teste bem-sucedido");
-   setTimeout(()=>toast("✅ Supabase ligado e pronto!","success"),1500);
-  }else{
-   console.error("❌ Upload teste falhou:",r2.status,j2);
-   setTimeout(()=>toast(`❌ Upload falhou (${r2.status}): ${j2.message||j2.error||'Verifica as policies'}`,"error"),1500);
-  }
- }catch(e){
-  console.error("❌ Supabase erro rede:",e);
-  setTimeout(()=>toast("❌ Sem ligação ao Supabase: "+e.message,"error"),1500);
- }
-})();
+// Supabase configurado — bucket: Casas
 
 // Helper: upload de um ficheiro Blob/File para o Supabase Storage
 async function uploadToSupabase(file, path) {
