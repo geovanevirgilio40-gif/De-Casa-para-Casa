@@ -679,7 +679,7 @@ async function renderHouses(){
  const minRooms=parseInt(document.getElementById('filterMinRooms')?.value)||0;
  let houses=allHouses.filter(h=>{
   const ms=(h.title||'').toLowerCase().includes(search)||(h.zone||'').toLowerCase().includes(search)||String(h.price).includes(search);
-  const mf=filterModeActive==='todos'?true:filterModeActive==='disponivel'?(!h.status||h.status==='disponivel'):filterModeActive==='reservada'?h.status==='reservada':filterModeActive==='quintal'?h.yard:filterModeActive==='energia'?h.electricity:true;
+  const mf=filterModeActive==='todos'?true:filterModeActive==='disponivel'?(!h.status||h.status==='disponivel'):filterModeActive==='quintal'?h.yard:filterModeActive==='energia'?h.electricity:true;
   return ms&&mf&&parseFloat(h.price)<=maxPrice&&parseInt(h.rooms||0)>=minRooms;
  });
  list.innerHTML='';
@@ -701,7 +701,7 @@ async function renderHouses(){
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
   div.innerHTML=`
   <div class="card-gallery" id="g-${h.id}">
-<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos).replace(/'/g,"&#39;")}' onerror="this.onerror=null;this.src='${ph}'">
+<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos).replace(/'/g,"&#39;")}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" onclick="openLightbox(${JSON.stringify(photos)},0)">
   ${photos.length>1?`<button class="gallery-btn gallery-prev" onclick="gNav('${h.id}',-1)">‹</button><button class="gallery-btn gallery-next" onclick="gNav('${h.id}',1)">›</button><div class="gallery-count"><span id="gc-${h.id}">1</span>/${photos.length}</div>`:''}
   <div class="status-badge ${sc}">${sl[sc]||'Disponível'}</div>
 </div>
@@ -812,13 +812,11 @@ async function loadAdmin(){
   const users=uSnap.docs.map(d=>({uid:d.id,...d.data()}));
   const houses=hSnap.docs.map(d=>({id:d.id,...d.data()}));
   const avail=houses.filter(h=>!h.status||h.status==='disponivel').length;
-  const reserved=houses.filter(h=>h.status==='reservada').length;
   const rented=houses.filter(h=>h.status==='arrendada').length;
   document.getElementById('adminStats').innerHTML=`
   <div class="stat-card"><span class="stat-num">${users.length}</span><span class="stat-label">Utilizadores</span></div>
 <div class="stat-card"><span class="stat-num">${houses.length}</span><span class="stat-label">Casas</span></div>
 <div class="stat-card"><span class="stat-num">${avail}</span><span class="stat-label">Disponíveis</span></div>
-<div class="stat-card"><span class="stat-num">${reserved}</span><span class="stat-label">Reservadas</span></div>
 <div class="stat-card"><span class="stat-num">${rented}</span><span class="stat-label">Arrendadas</span></div>`;
   const list=document.getElementById('userList');list.innerHTML='';
   users.forEach(u=>{
@@ -897,26 +895,33 @@ function isVideo(src){
 function renderMediaThumb(src, allMedia, idx, houseId){
  if(isVideo(src)){
   const safeAllMediaV=JSON.stringify(allMedia).replace(/'/g,"&#39;");
-  return `<video src="${src}" style="width:100%;height:190px;object-fit:cover;display:block;cursor:zoom-in;background:#000;" muted playsinline ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})" data-idx="${idx}" data-photos='${safeAllMediaV}'></video>`;
+  // FIX-VIDEO: poster frame + onclick para lightbox (mobile não suporta dblclick)
+  return `<div style="position:relative;width:100%;height:190px;background:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick="openLightbox(${JSON.stringify(allMedia)},${idx})" data-idx="${idx}" data-photos='${safeAllMediaV}'><video src="${src}" style="width:100%;height:190px;object-fit:cover;display:block;pointer-events:none;" muted playsinline preload="metadata"></video><div style="position:absolute;width:52px;height:52px;background:rgba(0,0,0,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg viewBox='0 0 24 24' fill='white' width='26' height='26'><polygon points='5,3 19,12 5,21'/></svg></div></div>`;
  }
  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
  // BUG16: sanitizar aspas simples em data-photos para não quebrar o atributo HTML
  const safeAllMediaI=JSON.stringify(allMedia).replace(/'/g,"&#39;");
- return `<img src="${src}" alt="foto" data-idx="${idx}" data-photos='${safeAllMediaI}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})">`;
+ // FIX-IMG: onclick em vez de ondblclick — mobile não suporta duplo toque facilmente
+ return `<img src="${src}" alt="foto" data-idx="${idx}" data-photos='${safeAllMediaI}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" onclick="openLightbox(${JSON.stringify(allMedia)},${idx})">`;
 }
 
 // LIGHTBOX
 let _lbMedia=[], _lbIdx=0;
 
 function openLightbox(media, idx){
- _lbMedia=media; _lbIdx=idx;
+ if(!media||!media.length)return;
+ _lbMedia=Array.isArray(media)?media:[media]; _lbIdx=idx||0;
+ const lb=document.getElementById('lightbox');
+ lb.style.display='flex'; // FIX-LB: forçar display antes da classe
  lbShow();
- document.getElementById('lightbox').classList.add('open');
+ lb.classList.add('open');
  document.body.style.overflow='hidden';
 }
 
 function closeLightbox(){
- document.getElementById('lightbox').classList.remove('open');
+ const lb=document.getElementById('lightbox');
+ lb.classList.remove('open');
+ lb.style.display='none'; // FIX-LB: garantir que fecha mesmo sem CSS
  const v=document.getElementById('lbVid');
  if(v){v.pause(); v.src='';}
  document.body.style.overflow='';
@@ -940,7 +945,10 @@ function lbShow(){
  if(isVideo(src)){
   img.style.display='none';
   vid.style.display='block';
-  vid.src=src; vid.load();
+  vid.src=src;
+  vid.load();
+  // FIX-VID: tentar autoplay no lightbox; se bloqueado pelo browser, controls permitem play manual
+  vid.play().catch(()=>{});
  }else{
   vid.style.display='none'; vid.pause(); vid.src='';
   img.style.display='block';
