@@ -116,10 +116,9 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .pass-strength{height:4px;border-radius:2px;margin-top:6px;background:var(--border);overflow:hidden;}
 .pass-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;background:var(--danger);}
-input,select,textarea{font-size:16px;}}
+input,select,textarea{font-size:16px;}
 
 /* Loading screen */
-@keyframes spin{to{transform:rotate(360deg)}}
 .logo-area svg{display:block;margin:0 auto 6px;}
 
 #logoutTopBtn:hover{border-color:var(--danger);color:var(--danger);transform:none;opacity:1;}
@@ -179,5 +178,5 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
 }
 
 /* ── LIGHTBOX ── */
-#lightbox{display:none;}
-#lightbox.open{display:flex;}
+#lightbox{visibility:hidden;pointer-events:none;}
+#lightbox.open{display:flex;visibility:visible;pointer-events:all;}
