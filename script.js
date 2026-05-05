@@ -67,11 +67,17 @@ async function uploadToSupabase(file, path) {
 
 // Helper: apagar ficheiro do Supabase Storage pelo path
 async function deleteFromSupabase(path) {
- const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${path}`;
- await fetch(url, {
-  method: "DELETE",
-  headers: { "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
- });
+ if(!path||typeof path!=='string'||path.trim()==='')return; // BUG9: guard null/vazio
+ const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodeURIComponent(path).replace(/%2F/g,'/')}`;
+ try{
+  await fetch(url, {
+   method: "DELETE",
+   headers: {
+    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+    "apikey": SUPABASE_ANON_KEY
+   }
+  });
+ }catch(e){ console.warn('deleteFromSupabase silenciado:',e); }
 }
 
 // Extrai o path relativo de uma URL pública Supabase
@@ -94,15 +100,16 @@ let _suppressAuthChange = false;
 // FIX Bug#1 — verificação de null em modeBtn
 const modeBtn = document.getElementById('toggleMode');
 if(modeBtn){
- if(localStorage.getItem('dcpc_theme')==='dark'){
-   document.body.classList.add('dark');
-   // FIX Bug#2 — texto correto: modo escuro ativo → botão mostra "Claro"
-   modeBtn.textContent='Claro';
+ const savedTheme=localStorage.getItem('dcpc_theme');
+ if(savedTheme==='dark'){
+  document.body.classList.add('dark');
+  modeBtn.textContent='Claro'; // escuro ativo → botão oferece "Claro"
+ } else {
+  modeBtn.textContent='Escuro'; // BUG10: claro ativo → botão oferece "Escuro"
  }
  modeBtn.onclick=()=>{
   document.body.classList.toggle('dark');
   const d=document.body.classList.contains('dark');
-  // FIX Bug#2 — lógica corrigida: escuro ativo → label "Claro" (para alternar de volta)
   modeBtn.textContent=d?'Claro':'Escuro';
   localStorage.setItem('dcpc_theme',d?'dark':'light');
  };
@@ -132,16 +139,24 @@ document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarge
 
 // PAGES
 function showPage(id){
+ // BUG11: verificar permissão ANTES de alterar o DOM
+ if(id==='rentPage'&&(!currentUser||!currentUser.isAdmin)){
+  toast("Apenas administradores!","error");
+  id='menuPage';
+ }
+ if(id==='adminPage'&&(!currentUser||!currentUser.isAdmin)){
+  toast("Acesso negado!","error");
+  id='menuPage';
+ }
  document.querySelectorAll('.container').forEach(d=>d.classList.add('hidden'));
- document.getElementById(id).classList.remove('hidden');
+ const target=document.getElementById(id);
+ if(!target){console.error('showPage: página não encontrada →',id);return;}
+ target.classList.remove('hidden');
  window.scrollTo(0,0);
- if(id==='searchPage') renderHouses();
+ if(id==='searchPage'){clearTimeout(_searchDebounce);renderHouses();} // BUG21
  if(id==='menuPage') {startSlideshow();updateMenu();}
  if(id==='adminPage') loadAdmin();
- if(id==='profilePage')loadProfile();
- if(id==='rentPage'&&(!currentUser||!currentUser.isAdmin)){
-  toast("Apenas administradores!","error");showPage('menuPage');return;
- }
+ if(id==='profilePage') loadProfile();
 }
 
 // FIX Bug#3 — goBack não usava o parâmetro page; mantido comportamento correto
@@ -179,6 +194,7 @@ function goSlide(i){
 }
 function startSlideshow(){
  clearInterval(st);
+ si=0;
  const img=document.getElementById('imagem');
  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
  img.src=slides[0];img.onerror=()=>{img.onerror=null;img.src=ph;};
@@ -217,7 +233,7 @@ document.getElementById('registerBtn').onclick=async()=>{
  const email=document.getElementById('rEmail').value.trim();
  const pass=document.getElementById('rPass').value.trim();
  const pass2=document.getElementById('rPass2').value.trim();
- if(!name||!phone||!email||!pass)return toast("Preencha todos os campos!","error");
+ if(!name||!phone||!email||!pass||!pass2)return toast("Preencha todos os campos!","error");
  if(pass.length<6)return toast("Password: mínimo 6 caracteres!","error");
  if(pass!==pass2)return toast("As passwords não coincidem!","error");
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return toast("Insere um email válido!","error");
@@ -261,8 +277,8 @@ document.getElementById('loginBtn').onclick=async()=>{
    await auth.signOut();
    toast("Email não verificado! Verifica a tua caixa de correio ","error");
    document.getElementById('resendVerif').classList.remove('hidden');
-   // FIX Bug#4 — não guardar password em dataset; usar variável em memória
-   document.getElementById('resendVerif').dataset.email=email;
+   // FIX Bug#3 — email e password guardados apenas em memória, não no DOM
+   _pendingResendEmail=email;
    _pendingResendPass=pass;
    btn.disabled=false;btn.textContent="Entrar";
    return;
@@ -276,12 +292,12 @@ document.getElementById('loginBtn').onclick=async()=>{
  }
 };
 
-// FIX Bug#4 — variável em memória em vez de dataset para a password de reenvio
+// Email e password em memória para reenvio de verificação (nunca no DOM)
+let _pendingResendEmail='';
 let _pendingResendPass='';
 
 async function resendEmail(){
- const div=document.getElementById('resendVerif');
- const email=div.dataset.email;
+ const email=_pendingResendEmail;
  const pass=_pendingResendPass;
  if(!email||!pass)return toast("Faz login primeiro.","error");
  // FIX Bug#13 — suprimir onAuthStateChanged durante reenvio
@@ -320,12 +336,13 @@ document.getElementById('recoverBtn').onclick=async()=>{
 async function resendRecovery(){
  if(!lastRecoverEmail)return;
  const btn=document.getElementById('resendRecoverBtn');
+ if(!btn)return; // BUG24: guard null
  btn.disabled=true;btn.textContent=" A reenviar...";
  try{
   await auth.sendPasswordResetEmail(lastRecoverEmail);
   toast("Email reenviado! Verifica o spam ","success");
   startResendCooldown();
- }catch(e){toast("Erro ao reenviar.","error");}
+ }catch(e){toast(errMsg(e)||"Erro ao reenviar.","error");}
  finally{btn.disabled=false;btn.textContent=" Reenviar Email";}
 }
 
@@ -333,8 +350,10 @@ function startResendCooldown(){
  let secs=60;
  const el=document.getElementById('resendCooldown');
  const btn=document.getElementById('resendRecoverBtn');
+ if(!el||!btn)return; // BUG25: guard null
+ clearInterval(resendTimer); // BUG25: limpar ANTES de desabilitar e mostrar texto
  btn.disabled=true;el.style.display='block';
- clearInterval(resendTimer);
+ el.textContent=`Podes reenviar em ${secs}s`;
  resendTimer=setInterval(()=>{
   secs--;el.textContent=`Podes reenviar em ${secs}s`;
   if(secs<=0){clearInterval(resendTimer);btn.disabled=false;el.style.display='none';}
@@ -345,8 +364,12 @@ function startResendCooldown(){
 // FIX Bug#11 — mantida apenas uma implementação centralizada de logout
 function logout(){
  showModal('Sair','Tem a certeza que quer sair?','Sair',async()=>{
-  await auth.signOut();
-  toast("Sessão encerrada.","info");
+  try{
+   await auth.signOut();
+   toast("Sessão encerrada.","info");
+  }catch(e){ // BUG22: tratar falha no signOut
+   toast("Erro ao sair: "+e.message,"error");
+  }
  });
 }
 
@@ -362,8 +385,10 @@ function hideLoader(){
 setTimeout(hideLoader, 8000);
 
 auth.onAuthStateChanged(async user=>{
- // FIX Bug#13 — ignorar disparo durante registo/reenvio
  if(_suppressAuthChange)return;
+ // BUG18: restaurar sempre o botão login antes de navegar
+ const lBtn=document.getElementById('loginBtn');
+ if(lBtn){lBtn.disabled=false;lBtn.textContent='Entrar';}
  if(user){
   try{
    const doc=await db.collection('users').doc(user.uid).get();
@@ -372,8 +397,6 @@ auth.onAuthStateChanged(async user=>{
   }catch(e){
    currentUser={uid:user.uid,email:user.email,name:user.displayName||'Utilizador',phone:'',isAdmin:false};
   }
-  document.getElementById('loginBtn').disabled=false;
-  document.getElementById('loginBtn').textContent="Entrar";
   hideLoader();
   showPage('menuPage');
  }else{
@@ -381,7 +404,6 @@ auth.onAuthStateChanged(async user=>{
   hideLoader();
   showPage('startPage');
  }
- // FIX Bug#12 — atualizar botão logout após mudança de estado
  _updateLogBtn();
 });
 
@@ -392,16 +414,23 @@ async function loginWithGoogle(){
  try{
   const result=await auth.signInWithPopup(provider);
   const user=result.user;
-  const doc=await db.collection('users').doc(user.uid).get();
-  if(!doc.exists){
-   await db.collection('users').doc(user.uid).set({
-    name:user.displayName||'Utilizador',phone:'',email:user.email,isAdmin:false,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-   });
-  }
+  // BUG23: proteger escrita Firestore com try interno para não bloquear login
+  try{
+   const doc=await db.collection('users').doc(user.uid).get();
+   if(!doc.exists){
+    await db.collection('users').doc(user.uid).set({
+     name:user.displayName||'Utilizador',phone:'',email:user.email,isAdmin:false,
+     createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+   }
+  }catch(dbErr){ console.warn('Erro ao criar perfil Google:',dbErr); }
   toast("Bem-vindo(a), "+(user.displayName||'')+"! ","success");
  }catch(e){
-  if(e.code!=='auth/popup-closed-by-user')toast(errMsg(e),"error");
+  if(e.code==='auth/popup-blocked'){
+   toast("Popup bloqueado pelo browser. Permite popups para este site.","error");
+  }else if(e.code!=='auth/popup-closed-by-user'){
+   toast(errMsg(e),"error");
+  }
  }
 }
 
@@ -411,14 +440,14 @@ function loadProfile(){
  document.getElementById('pName').value=currentUser.name;
  document.getElementById('pPhone').value=currentUser.phone;
  document.getElementById('pEmail').value=currentUser.email;
- document.getElementById('profileAvatar').textContent=currentUser.name[0].toUpperCase();
+ document.getElementById('profileAvatar').textContent=(currentUser.name||'?')[0].toUpperCase(); // BUG26
  document.getElementById('pPassNew').value='';
 }
 
 document.getElementById('saveProfileBtn').onclick=async()=>{
  const name=document.getElementById('pName').value.trim();
  const phone=document.getElementById('pPhone').value.trim();
- const passNew=document.getElementById('pPassNew').value.trim();
+ const passNew=document.getElementById('pPassNew').value;
  if(!name)return toast("O nome não pode estar vazio!","error");
  const btn=document.getElementById('saveProfileBtn');
  btn.disabled=true;btn.textContent=" A guardar...";
@@ -426,21 +455,33 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
   await db.collection('users').doc(currentUser.uid).update({name,phone});
   await auth.currentUser.updateProfile({displayName:name});
   if(passNew){
-   // FIX Bug#8 — validação dentro do try para garantir que finally restaura o botão
-   if(passNew.length<6){
-    toast("Password: mínimo 6 caracteres!","error");
-    return;
-   }
+   // BUG19: lançar erro em vez de return+reset manual para que o finally trate o botão
+   if(passNew.length<6) throw new Error('Password: mínimo 6 caracteres!');
    await auth.currentUser.updatePassword(passNew);
   }
   currentUser.name=name;currentUser.phone=phone;
   toast("Perfil atualizado!","success");
   updateMenu();
- }catch(e){toast(e.message||"Erro ao guardar.","error");}
+ }catch(e){
+  // BUG20: mensagem amigável para erro de reautenticação
+  if(e.code==='auth/requires-recent-login'){
+   toast("Por segurança, faz logout e login novamente antes de alterar a password.","error");
+  }else{
+   toast(e.message||"Erro ao guardar.","error");
+  }
+ }
  finally{btn.disabled=false;btn.textContent="Guardar Alterações";}
 };
 
 // HOUSES
+// BUG12: função chamada pelo back-btn do rentPage — limpa estado antes de sair
+function cancelRent(){
+ editingHouseId=null;
+ document.getElementById('editHouseId').value='';
+ document.getElementById('uploadProgress').style.display='none';
+ showPage('menuPage');
+}
+
 function startNewHouse(){
  editingHouseId=null;
  document.getElementById('editHouseId').value='';
@@ -489,8 +530,19 @@ function compressImgToBlob(file,maxW,q){
     c.width=w;c.height=h;
     c.getContext('2d').drawImage(img,0,0,w,h);
     c.toBlob(blob=>{
-     if(blob)resolve(blob);
-     else reject(new Error('Falha ao comprimir imagem'));
+     if(blob){resolve(blob);}
+     else{
+      // BUG13: fallback Safari — canvas.toBlob retornou null; usar dataURL como Blob
+      try{
+       const dataUrl=c.toDataURL('image/jpeg',q);
+       const arr=dataUrl.split(',');
+       const bstr=atob(arr[1]);
+       let n=bstr.length;
+       const u8=new Uint8Array(n);
+       while(n--)u8[n]=bstr.charCodeAt(n);
+       resolve(new Blob([u8],{type:'image/jpeg'}));
+      }catch(fe){reject(new Error('Falha ao comprimir imagem: '+fe.message));}
+     }
     },'image/jpeg',q);
    };
    img.src=e.target.result;
@@ -499,27 +551,8 @@ function compressImgToBlob(file,maxW,q){
  });
 }
 
-// MANTIDA para compatibilidade com código legado (base64 inline)
-function compressImg(file,maxW,q){
- return new Promise((resolve,reject)=>{
-  const rd=new FileReader();
-  rd.onerror=()=>reject(new Error('Falha ao ler ficheiro'));
-  rd.onload=e=>{
-   const img=new Image();
-   img.onerror=()=>reject(new Error('Falha ao carregar imagem'));
-   img.onload=()=>{
-    const c=document.createElement('canvas');
-    let w=img.width,h=img.height;
-    if(w>maxW){h=h*maxW/w;w=maxW;}
-    c.width=w;c.height=h;
-    c.getContext('2d').drawImage(img,0,0,w,h);
-    resolve(c.toDataURL('image/jpeg',q));
-   };
-   img.src=e.target.result;
-  };
-  rd.readAsDataURL(file);
- });
-}
+
+
 
 document.getElementById('saveHouse').onclick=async()=>{
  if(!currentUser?.isAdmin)return toast("Apenas administradores!","error");
@@ -570,8 +603,17 @@ document.getElementById('saveHouse').onclick=async()=>{
   const editId=document.getElementById('editHouseId').value;
   const data={title,zone,status,rooms,living,kitchen,bathrooms,electricity,yard,price,ownerContact,desc};
   if(editId){
-   // Se não foram enviadas novas fotos, manter as existentes
-   if(photos.length===0)photos=allHouses.find(h=>h.id===editId)?.photos||[];
+   const existingPhotos=allHouses.find(h=>h.id===editId)?.photos||[];
+   if(photos.length===0){
+    // Sem novas fotos: manter existentes
+    photos=existingPhotos;
+   }else{
+    // Com novas fotos: apagar as antigas do Supabase
+    for(const url of existingPhotos){
+     const p=supabasePathFromUrl(url);
+     if(p) await deleteFromSupabase(p).catch(()=>{});
+    }
+   }
    data.photos=photos;
    await db.collection('houses').doc(editId).update({...data,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
    toast("Casa atualizada!","success");
@@ -590,7 +632,12 @@ document.getElementById('saveHouse').onclick=async()=>{
   const prog=document.getElementById('uploadProgress');
   if(prog){prog.style.display='block';prog.textContent='ERRO: '+msg;}
  }
- finally{btn.disabled=false;btn.textContent=" Guardar Casa";}
+ finally{
+  btn.disabled=false;btn.textContent=" Guardar Casa";
+  // BUG14: garantir que o progresso é sempre limpo ao terminar (sucesso ou erro)
+  const progF=document.getElementById('uploadProgress');
+  if(progF&&progF.textContent&&!progF.textContent.startsWith('ERRO'))progF.style.display='none';
+ }
 };
 
 // RENDER HOUSES
@@ -646,7 +693,7 @@ async function renderHouses(){
   const div=document.createElement('div');div.className='house-card';
   const photos=h.photos&&h.photos.length?h.photos:[];
   const sc=h.status||'disponivel';
-  const hj=JSON.stringify({title:h.title,ownerContact:h.ownerContact,zone:h.zone,price:h.price});
+  const hj=JSON.stringify({title:h.title||'',ownerContact:h.ownerContact||'',zone:h.zone||'',price:h.price||0}).replace(/'/g,'&#39;');
   // FIX Bug#9 — sanitizar campos de texto antes de injetar no innerHTML
   // FIX Bug#16 — onerror com null-guard para evitar loop infinito
   const safeTitle=escapeHtml(h.title);
@@ -654,7 +701,7 @@ async function renderHouses(){
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
   div.innerHTML=`
   <div class="card-gallery" id="g-${h.id}">
-<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos)}' onerror="this.onerror=null;this.src='${ph}'">
+<img src="${photos[0]||ph}" alt="foto" data-idx="0" data-photos='${JSON.stringify(photos).replace(/'/g,"&#39;")}' onerror="this.onerror=null;this.src='${ph}'">
   ${photos.length>1?`<button class="gallery-btn gallery-prev" onclick="gNav('${h.id}',-1)">‹</button><button class="gallery-btn gallery-next" onclick="gNav('${h.id}',1)">›</button><div class="gallery-count"><span id="gc-${h.id}">1</span>/${photos.length}</div>`:''}
   <div class="status-badge ${sc}">${sl[sc]||'Disponível'}</div>
 </div>
@@ -666,7 +713,7 @@ async function renderHouses(){
   ${h.living>0?`<span class="feature-tag">Sala: ${h.living}</span>`:''}
   ${h.kitchen>0?`<span class="feature-tag">Cozinha: ${h.kitchen}</span>`:''}
   ${h.bathrooms>0?`<span class="feature-tag">WC: ${h.bathrooms}</span>`:''}
-  ${h.electricity?`<span class="feature-tag">Com Energia</span>`:'<span class="feature-tag">Sem Qnergia</span>'}
+  ${h.electricity?`<span class="feature-tag">Com Energia</span>`:'<span class="feature-tag">Sem Energia</span>'}
   ${h.yard?`<span class="feature-tag">Com Quintal</span>`:'<span class="feature-tag">Sem Quintal</span>'}
   </div>
 <div class="card-price">${Number(h.price).toLocaleString('pt-PT')} Kz<small>/mês</small></div>
@@ -694,7 +741,8 @@ function showContact(h){
  document.getElementById('contactModal').classList.remove('hidden');
 }
 
-// FIX Bug#6 — gNav definida uma única vez, com suporte a vídeo integrado (removido _origGNav)
+// FIX Bug#6 — gNav definida uma única vez, com suporte a vídeo integrado
+// FIX Bug#15 — substituição de media feita via innerHTML do container, não outerHTML
 function gNav(id,dir){
  const g=document.getElementById('g-'+id);
  if(!g)return;
@@ -706,22 +754,23 @@ function gNav(id,dir){
  if(idx<0)idx=photos.length-1;if(idx>=photos.length)idx=0;
 
  const newSrc=photos[idx];
+ const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
 
- if(isVideo(newSrc)){
-  const oldEl=g.querySelector('img,video');
-  if(oldEl){
-   oldEl.style.opacity=0;
-   setTimeout(()=>{oldEl.outerHTML=renderMediaThumb(newSrc,photos,idx,id);},200);
+ // Substituir o elemento media pelo novo, mantendo referência via ID do wrapper
+ const mediaWrapper=document.createElement('div');
+ mediaWrapper.innerHTML=renderMediaThumb(newSrc,photos,idx,id);
+ const newEl=mediaWrapper.firstChild;
+
+ media.style.opacity=0;
+ setTimeout(()=>{
+  if(media.parentNode){
+   media.parentNode.replaceChild(newEl,media);
+   // BUG17: forçar reflow e restaurar opacidade no novo elemento
+   newEl.style.opacity=0;
+   requestAnimationFrame(()=>{newEl.style.transition='opacity .3s';newEl.style.opacity=1;});
   }
- }else{
-  const img=g.querySelector('img');
-  // FIX Bug#16 — onerror com null-guard
-  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
-  if(img){img.style.opacity=0;setTimeout(()=>{img.onerror=()=>{img.onerror=null;img.src=ph;};img.src=newSrc;img.dataset.idx=idx;img.style.opacity=1;},200);}
-  const vid=g.querySelector('video');
-  // FIX Bug#7 — template literal corrigido (removido \$ → $)
-  if(vid){vid.style.opacity=0;setTimeout(()=>{vid.outerHTML=`<img src="${newSrc}" alt="foto" data-idx="${idx}" data-photos='${JSON.stringify(photos)}' style="cursor:zoom-in;" onerror="this.onerror=null;this.src='${ph}'" ondblclick="openLightbox(${JSON.stringify(photos)},${idx})">`;},200);}
- }
+ },200);
+
  const c=document.getElementById('gc-'+id);if(c)c.textContent=idx+1;
 }
 
@@ -745,21 +794,32 @@ function delHouse(id){
  });
 }
 
-document.getElementById('searchInput').addEventListener('input',()=>renderHouses());
+// Bug#19 — debounce na pesquisa para evitar leituras excessivas ao Firestore
+let _searchDebounce=null;
+document.getElementById('searchInput').addEventListener('input',()=>{
+ clearTimeout(_searchDebounce);
+ _searchDebounce=setTimeout(()=>renderHouses(),350);
+});
 
 // ADMIN
 async function loadAdmin(){
  if(!currentUser?.isAdmin){toast("Acesso negado!","error");showPage('menuPage');return;}
+ // BUG27: mostrar spinner antes de cada carregamento (não apenas na primeira vez)
+ const listEl=document.getElementById('userList');
+ if(listEl)listEl.innerHTML='<div class="spinner"></div>';
  try{
   const [uSnap,hSnap]=await Promise.all([db.collection('users').get(),db.collection('houses').get()]);
   const users=uSnap.docs.map(d=>({uid:d.id,...d.data()}));
   const houses=hSnap.docs.map(d=>({id:d.id,...d.data()}));
   const avail=houses.filter(h=>!h.status||h.status==='disponivel').length;
+  const reserved=houses.filter(h=>h.status==='reservada').length;
+  const rented=houses.filter(h=>h.status==='arrendada').length;
   document.getElementById('adminStats').innerHTML=`
   <div class="stat-card"><span class="stat-num">${users.length}</span><span class="stat-label">Utilizadores</span></div>
 <div class="stat-card"><span class="stat-num">${houses.length}</span><span class="stat-label">Casas</span></div>
 <div class="stat-card"><span class="stat-num">${avail}</span><span class="stat-label">Disponíveis</span></div>
-<div class="stat-card"><span class="stat-num">${houses.length-avail}</span><span class="stat-label">Arrendadas</span></div>`;
+<div class="stat-card"><span class="stat-num">${reserved}</span><span class="stat-label">Reservadas</span></div>
+<div class="stat-card"><span class="stat-num">${rented}</span><span class="stat-label">Arrendadas</span></div>`;
   const list=document.getElementById('userList');list.innerHTML='';
   users.forEach(u=>{
    const isSelf=u.uid===currentUser.uid;
@@ -782,9 +842,13 @@ async function loadAdmin(){
 }
 
 async function setAdmin(uid,val){
- await db.collection('users').doc(uid).update({isAdmin:val});
- toast(val?"Admin adicionado!":"Admin removido.","success");
- loadAdmin();
+ try{
+  await db.collection('users').doc(uid).update({isAdmin:val});
+  toast(val?"Admin adicionado!":"Admin removido.","success");
+  loadAdmin();
+ }catch(e){
+  toast("Erro ao alterar permissões: "+e.message,"error");
+ }
 }
 
 // FIX Bug#10 — delUser agora também remove a conta Firebase Auth via Admin SDK
@@ -793,11 +857,14 @@ async function setAdmin(uid,val){
 // a eliminação final da conta Auth deve ser feita por uma Cloud Function.
 function delUser(uid){
  showModal('Apagar utilizador','Esta ação é permanente. Confirmas?','Apagar',async()=>{
-  await db.collection('users').doc(uid).delete();
-  // Marcar para eliminação pela Cloud Function (se configurada)
-  await db.collection('deletionQueue').doc(uid).set({uid, requestedAt: firebase.firestore.FieldValue.serverTimestamp()});
-  toast("Utilizador apagado. A conta de acesso será removida em breve.","success");
-  loadAdmin();
+  try{
+   await db.collection('users').doc(uid).delete();
+   await db.collection('deletionQueue').doc(uid).set({uid, requestedAt: firebase.firestore.FieldValue.serverTimestamp()});
+   toast("Utilizador apagado. A conta de acesso será removida em breve.","success");
+   loadAdmin();
+  }catch(e){
+   toast("Erro ao apagar utilizador: "+e.message,"error");
+  }
  });
 }
 
@@ -818,16 +885,24 @@ function _updateLogBtn(){
 }
 
 // MEDIA THUMB
-function isVideo(src){return src&&(src.startsWith('data:video')||/\.(mp4|webm|ogg|mov)$/i.test(src));}
+function isVideo(src){
+ if(!src)return false;
+ if(src.startsWith('data:video'))return true;
+ // BUG28: remover query string antes de verificar extensão
+ const cleanSrc=src.split('?')[0];
+ return /\.(mp4|webm|ogg|mov)$/i.test(cleanSrc);
+}
 
 // FIX Bug#7 — template literals corrigidos (removido \$ → $)
 function renderMediaThumb(src, allMedia, idx, houseId){
  if(isVideo(src)){
-  return `<video src="${src}" style="width:100%;height:190px;object-fit:cover;display:block;cursor:zoom-in;background:#000;" muted playsinline ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})" data-idx="${idx}" data-photos='${JSON.stringify(allMedia)}'></video>`;
+  const safeAllMediaV=JSON.stringify(allMedia).replace(/'/g,"&#39;");
+  return `<video src="${src}" style="width:100%;height:190px;object-fit:cover;display:block;cursor:zoom-in;background:#000;" muted playsinline ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})" data-idx="${idx}" data-photos='${safeAllMediaV}'></video>`;
  }
  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
- // FIX Bug#16 — onerror com null-guard para evitar loop infinito
- return `<img src="${src}" alt="foto" data-idx="${idx}" data-photos='${JSON.stringify(allMedia)}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})">`;
+ // BUG16: sanitizar aspas simples em data-photos para não quebrar o atributo HTML
+ const safeAllMediaI=JSON.stringify(allMedia).replace(/'/g,"&#39;");
+ return `<img src="${src}" alt="foto" data-idx="${idx}" data-photos='${safeAllMediaI}' onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" ondblclick="openLightbox(${JSON.stringify(allMedia)},${idx})">`;
 }
 
 // LIGHTBOX
@@ -879,7 +954,7 @@ function lbShow(){
 // FIX Bug#17 — teclas de navegação só ativas quando lightbox está aberto
 document.addEventListener('keydown',e=>{
  const isOpen=document.getElementById('lightbox')?.classList.contains('open');
- if(e.key==='Escape') closeLightbox();
+ if(isOpen&&e.key==='Escape') closeLightbox();
  if(isOpen&&e.key==='ArrowLeft') lbNav(-1);
  if(isOpen&&e.key==='ArrowRight') lbNav(1);
 });
