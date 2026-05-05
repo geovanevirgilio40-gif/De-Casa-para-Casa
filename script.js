@@ -251,8 +251,6 @@ document.getElementById('registerBtn').onclick=async()=>{
  if(fakedomains.includes(domain))return toast("Este domínio de email não é permitido!","error");
  const btn=document.getElementById('registerBtn');
  btn.disabled=true;btn.textContent=" A criar conta...";
- // FIX Bug#13 — suprimir onAuthStateChanged durante o registo
- _suppressAuthChange=true;
  try{
   const cred=await auth.createUserWithEmailAndPassword(email,pass);
   await cred.user.updateProfile({displayName:name});
@@ -261,12 +259,10 @@ document.getElementById('registerBtn').onclick=async()=>{
    criadoEm:firebase.firestore.FieldValue.serverTimestamp()
   });
   toast("Conta criada com sucesso! Bem-vindo(a) 🏠","success");
-  // Entra directamente — sem verificação de email
+  // onAuthStateChanged dispara automaticamente e redireciona para o menu
  }catch(e){
   if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
   toast(errMsg(e),"error");
- }finally{
-  _suppressAuthChange=false;
   btn.disabled=false;btn.textContent="Confirmar Cadastro";
  }
 };
@@ -372,7 +368,7 @@ auth.onAuthStateChanged(async user=>{
   try{
    const doc=await db.collection('users').doc(user.uid).get();
    const data=doc.exists?doc.data():{};
-   currentUser={uid:user.uid,email:user.email,name:data.name||user.displayName||'Utilizador',phone:data.phone||'',isAdmin:data.isAdmin||false};
+   currentUser={uid:user.uid,email:user.email,name:data.nome||user.displayName||'Utilizador',phone:data.telefone||'',isAdmin:data.administrador||false};
   }catch(e){
    currentUser={uid:user.uid,email:user.email,name:user.displayName||'Utilizador',phone:'',isAdmin:false};
   }
@@ -398,8 +394,8 @@ async function loginWithGoogle(){
    const doc=await db.collection('users').doc(user.uid).get();
    if(!doc.exists){
     await db.collection('users').doc(user.uid).set({
-     name:user.displayName||'Utilizador',phone:'',email:user.email,isAdmin:false,
-     createdAt:firebase.firestore.FieldValue.serverTimestamp()
+     nome:user.displayName||'Utilizador',telefone:'',email:user.email,administrador:false,
+     criadoEm:firebase.firestore.FieldValue.serverTimestamp()
     });
    }
   }catch(dbErr){ console.warn('Erro ao criar perfil Google:',dbErr); }
@@ -673,7 +669,7 @@ async function renderHouses(){
   const photos=h.photos&&h.photos.length?h.photos:[];
   _mediaMap[h.id]=photos; // guardar para openLightboxById
   const sc=h.status||'disponivel';
-  const hj=JSON.stringify({title:h.title||'',ownerContact:h.ownerContact||'',zone:h.zone||'',price:h.price||0}).replace(/'/g,'&#39;');
+  const hj=JSON.stringify({id:h.id,title:h.title||'',ownerContact:h.ownerContact||'',zone:h.zone||'',price:h.price||0,rooms:h.rooms||0,living:h.living||0,kitchen:h.kitchen||0,bathrooms:h.bathrooms||0,electricity:h.electricity||false,yard:h.yard||false,desc:h.desc||'',status:h.status||'disponivel'}).replace(/'/g,'&#39;');
   // FIX Bug#9 — sanitizar campos de texto antes de injetar no innerHTML
   // FIX Bug#16 — onerror com null-guard para evitar loop infinito
   const safeTitle=escapeHtml(h.title);
@@ -705,19 +701,52 @@ async function renderHouses(){
  });
 }
 
-// FIX Bug#18 — showContact usa textContent em vez de innerHTML para evitar XSS
 function showContact(h){
  const info=document.getElementById('contactInfo');
- info.innerHTML='';
- const title=document.createElement('b');title.textContent=h.title||'';
- const br1=document.createElement('br');
- const br2=document.createElement('br');
- const contact=document.createElement('b');contact.textContent=h.ownerContact||'Não disponível';
- const br3=document.createElement('br');
- const zone=document.createTextNode(' '+(h.zone||'—'));
- const br4=document.createElement('br');
- const price=document.createTextNode(' '+Number(h.price).toLocaleString('pt-PT')+' Kz/mês');
- info.append(title,br1,br2,contact,br3,zone,br4,price);
+ const sl={disponivel:'Disponível',arrendada:'Arrendada'};
+ const statusColor={disponivel:'#1a7a4a',arrendada:'#c0392b'};
+ const sc=h.status||'disponivel';
+
+ // Formatar número para WhatsApp (remover espaços e garantir prefixo 244)
+ const rawPhone=(h.ownerContact||'').replace(/\s+/g,'');
+ const waNumber=rawPhone.startsWith('+')?rawPhone.slice(1):rawPhone.startsWith('0')?'244'+rawPhone.slice(1):rawPhone.startsWith('244')?rawPhone:'244'+rawPhone;
+ const waMsg=encodeURIComponent('Olá! Vi a casa "'+h.title+'" no De Casa para Casa e tenho interesse. Pode dar mais informações?');
+ const waLink='https://wa.me/'+waNumber+'?text='+waMsg;
+ document.getElementById('contactWhatsApp').href=waLink;
+
+ info.innerHTML=`
+  <!-- Badge de estado -->
+  <div style="display:inline-block;background:${statusColor[sc]}22;color:${statusColor[sc]};border:1px solid ${statusColor[sc]}44;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin-bottom:14px;">${sl[sc]||'Disponível'}</div>
+
+  <!-- Título -->
+  <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);font-weight:700;margin-bottom:6px;">${escapeHtml(h.title)}</div>
+
+  <!-- Zona -->
+  ${h.zone?`<div style="color:var(--text2);font-size:13px;margin-bottom:14px;"> ${escapeHtml(h.zone)}</div>`:''}
+
+  <!-- Preço -->
+  <div style="font-size:1.3rem;font-weight:700;color:var(--accent2);margin-bottom:16px;">${Number(h.price).toLocaleString('pt-PT')} Kz<span style="font-size:13px;font-weight:400;">/mês</span></div>
+
+  <!-- Características -->
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+    ${h.rooms>0?`<span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;"> ${h.rooms} Quarto${h.rooms>1?'s':''}</span>`:''}
+    ${h.living>0?`<span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;"> ${h.living} Sala${h.living>1?'s':''}</span>`:''}
+    ${h.kitchen>0?`<span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;"> ${h.kitchen} Cozinha${h.kitchen>1?'s':''}</span>`:''}
+    ${h.bathrooms>0?`<span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;"> ${h.bathrooms} WC</span>`:''}
+    <span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;">${h.electricity?' Com Energia':' Sem Energia'}</span>
+    <span style="background:var(--input-bg);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;">${h.yard?' Com Quintal':' Sem Quintal'}</span>
+  </div>
+
+  <!-- Descrição -->
+  ${h.desc?`<div style="background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.7;border:1px solid var(--border);">${escapeHtml(h.desc)}</div>`:''}
+
+  <!-- Contacto -->
+  <div style="background:var(--input-bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:4px;">
+    <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Contacto do Proprietário</div>
+    <div style="font-size:16px;font-weight:600;color:var(--text);">${escapeHtml(h.ownerContact||'Não disponível')}</div>
+  </div>
+ `;
+
  document.getElementById('contactModal').classList.remove('hidden');
 }
 
