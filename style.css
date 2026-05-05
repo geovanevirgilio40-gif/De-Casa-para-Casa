@@ -178,5 +178,5 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
 }
 
 /* ── LIGHTBOX ── */
-#lightbox{visibility:hidden;pointer-events:none;}
-#lightbox.open{display:flex;visibility:visible;pointer-events:all;}
+#lightbox{display:none;}
+#lightbox.open{display:flex;}
