@@ -95,6 +95,13 @@ let editingHouseId = null;
 // Mapa global: houseId → array de URLs de media (evita JSON inline em onclick)
 const _mediaMap = {};
 
+// Placeholder SVG para imagens que falham — definido como função para evitar
+// problemas de aspas em atributos HTML inline
+function _imgError(el){
+ el.onerror=null; // evitar loop
+ el.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
+}
+
 // FIX Bug#13 — flag para ignorar onAuthStateChanged durante registo/resend
 let _suppressAuthChange = false;
 
@@ -704,7 +711,7 @@ async function renderHouses(){
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
   div.innerHTML=`
   <div class="card-gallery" id="g-${h.id}">
-<img src="${photos[0]||ph}" alt="foto" data-idx="0" onerror="this.onerror=null;this.src='${ph}'" style="cursor:zoom-in;" onclick="openLightboxById('${h.id}',0)">
+<img src="${photos[0]||ph}" alt="foto" data-idx="0" onerror="_imgError(this)" style="cursor:zoom-in;width:100%;height:190px;object-fit:cover;display:block;" onclick="openLightboxById('${h.id}',0)">
   ${photos.length>1?`<button class="gallery-btn gallery-prev" onclick="gNav('${h.id}',-1)">‹</button><button class="gallery-btn gallery-next" onclick="gNav('${h.id}',1)">›</button><div class="gallery-count"><span id="gc-${h.id}">1</span>/${photos.length}</div>`:''}
   <div class="status-badge ${sc}">${sl[sc]||'Disponível'}</div>
 </div>
@@ -904,7 +911,7 @@ function renderMediaThumb(src, allMedia, idx, houseId){
  // BUG16: sanitizar aspas simples em data-photos para não quebrar o atributo HTML
  const ph2="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
  // FIX-IMG: usar houseId em vez de JSON inline
- return `<img src="${src}" alt="foto" data-idx="${idx}" data-house-id="${houseId}" onerror="this.onerror=null;this.src='${ph2}'" style="cursor:zoom-in;" onclick="openLightboxById('${houseId}',${idx})">`;
+ return `<img src="${src}" alt="foto" data-idx="${idx}" data-house-id="${houseId}" onerror="_imgError(this)" style="cursor:zoom-in;" onclick="openLightboxById('${houseId}',${idx})">`;
 }
 
 // LIGHTBOX
@@ -971,6 +978,7 @@ function lbShow(){
  }else{
   vid.style.display='none'; vid.pause(); vid.src='';
   img.style.display='block';
+  img.onerror=()=>_imgError(img);
   img.src=src;
  }
  ctr.textContent=_lbMedia.length>1?(_lbIdx+1)+' / '+_lbMedia.length:'';
