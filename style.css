@@ -178,5 +178,4 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
 }
 
 /* ── LIGHTBOX ── */
-#lightbox{display:none;}
-#lightbox.open{display:flex;}
+/* display controlado por JS via style inline — não redefinir aqui */
