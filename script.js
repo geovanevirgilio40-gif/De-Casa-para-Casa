@@ -257,13 +257,11 @@ document.getElementById('registerBtn').onclick=async()=>{
   const cred=await auth.createUserWithEmailAndPassword(email,pass);
   await cred.user.updateProfile({displayName:name});
   await db.collection('users').doc(cred.user.uid).set({
-   name,phone,email,isAdmin:false,
-   createdAt:firebase.firestore.FieldValue.serverTimestamp()
+   nome:name,telefone:phone,email,administrador:false,
+   criadoEm:firebase.firestore.FieldValue.serverTimestamp()
   });
-  await cred.user.sendEmailVerification();
-  await auth.signOut();
-  toast("Conta criada! Verifica o teu email antes de entrar 📧","success");
-  showPage('loginPage');
+  toast("Conta criada com sucesso! Bem-vindo(a) 🏠","success");
+  // Entra directamente — sem verificação de email
  }catch(e){
   if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
   toast(errMsg(e),"error");
@@ -281,19 +279,8 @@ document.getElementById('loginBtn').onclick=async()=>{
  const btn=document.getElementById('loginBtn');
  btn.disabled=true;btn.textContent=" A entrar...";
  try{
-  const cred=await auth.signInWithEmailAndPassword(email,pass);
-  if(!cred.user.emailVerified){
-   await auth.signOut();
-   toast("Email não verificado! Verifica a tua caixa de correio ","error");
-   document.getElementById('resendVerif').classList.remove('hidden');
-   // FIX Bug#3 — email e password guardados apenas em memória, não no DOM
-   _pendingResendEmail=email;
-   _pendingResendPass=pass;
-   btn.disabled=false;btn.textContent="Entrar";
-   return;
-  }
-  document.getElementById('resendVerif').classList.add('hidden');
-  // FIX Bug#5 — restaurar botão no caminho de sucesso (onAuthStateChanged trata o redirect)
+  await auth.signInWithEmailAndPassword(email,pass);
+  // onAuthStateChanged trata o redirect para o menu
   btn.disabled=false;btn.textContent="Entrar";
  }catch(e){
   toast(errMsg(e),"error");
@@ -301,24 +288,7 @@ document.getElementById('loginBtn').onclick=async()=>{
  }
 };
 
-// Email e password em memória para reenvio de verificação (nunca no DOM)
-let _pendingResendEmail='';
-let _pendingResendPass='';
-
-async function resendEmail(){
- const email=_pendingResendEmail;
- const pass=_pendingResendPass;
- if(!email||!pass)return toast("Faz login primeiro.","error");
- // FIX Bug#13 — suprimir onAuthStateChanged durante reenvio
- _suppressAuthChange=true;
- try{
-  const cred=await auth.signInWithEmailAndPassword(email,pass);
-  await cred.user.sendEmailVerification();
-  await auth.signOut();
-  toast("Email reenviado! Verifica o spam também ","success");
- }catch(e){toast(errMsg(e),"error");}
- finally{_suppressAuthChange=false;}
-}
+// Verificação de email removida — utilizadores entram directamente após registo
 
 // RECOVER
 let lastRecoverEmail='', resendTimer=null;
