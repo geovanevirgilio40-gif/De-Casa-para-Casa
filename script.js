@@ -368,7 +368,7 @@ auth.onAuthStateChanged(async user=>{
   try{
    const doc=await db.collection('users').doc(user.uid).get();
    const data=doc.exists?doc.data():{};
-   currentUser={uid:user.uid,email:user.email,name:data.nome||user.displayName||'Utilizador',phone:data.telefone||'',isAdmin:data.administrador||false};
+   currentUser={uid:user.uid,email:user.email,name:data.nome||data.name||user.displayName||'Utilizador',phone:data.telefone||data.phone||'',isAdmin:data.administrador||data.isAdmin||false};
   }catch(e){
    currentUser={uid:user.uid,email:user.email,name:user.displayName||'Utilizador',phone:'',isAdmin:false};
   }
@@ -850,7 +850,7 @@ async function loadAdmin(){
 
 async function setAdmin(uid,val){
  try{
-  await db.collection('users').doc(uid).update({isAdmin:val});
+  await db.collection('users').doc(uid).update({administrador:val});
   toast(val?"Admin adicionado!":"Admin removido.","success");
   loadAdmin();
  }catch(e){
