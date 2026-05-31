@@ -367,7 +367,13 @@ auth.onAuthStateChanged(async user=>{
  if(user){
   try{
    const doc=await db.collection('users').doc(user.uid).get();
-   const data=doc.exists?doc.data():{};
+   // Se o documento não existe ou está banido — forçar logout
+   if(!doc.exists||doc.data()?.banido){
+    await auth.signOut();
+    toast("Esta conta foi removida.","error");
+    return;
+   }
+   const data=doc.data();
    currentUser={uid:user.uid,email:user.email,name:data.nome||data.name||user.displayName||'Utilizador',phone:data.telefone||data.phone||'',isAdmin:data.administrador||data.isAdmin||false};
   }catch(e){
    currentUser={uid:user.uid,email:user.email,name:user.displayName||'Utilizador',phone:'',isAdmin:false};
@@ -863,11 +869,23 @@ async function setAdmin(uid,val){
 // Aqui marcamos o utilizador como "deleted" no Firestore e removemos os dados;
 // a eliminação final da conta Auth deve ser feita por uma Cloud Function.
 function delUser(uid){
+ if(uid===currentUser?.uid)return toast("Não podes apagar a tua própria conta!","error");
  showModal('Apagar utilizador','Esta ação é permanente. Confirmas?','Apagar',async()=>{
   try{
+   // Marcar como banido ANTES de apagar — assim se o utilizador estiver online
+   // o onAuthStateChanged detecta e faz logout imediato
+   await db.collection('users').doc(uid).set({
+    banido:true,
+    apagarEm:firebase.firestore.FieldValue.serverTimestamp()
+   });
+   // Apagar o documento após marcar
    await db.collection('users').doc(uid).delete();
-   await db.collection('deletionQueue').doc(uid).set({uid, requestedAt: firebase.firestore.FieldValue.serverTimestamp()});
-   toast("Utilizador apagado. A conta de acesso será removida em breve.","success");
+   // Guardar na fila de eliminação (para referência futura)
+   await db.collection('filaDependentes').doc(uid).set({
+    uid,
+    pedidoEm:firebase.firestore.FieldValue.serverTimestamp()
+   });
+   toast("Utilizador apagado com sucesso.","success");
    loadAdmin();
   }catch(e){
    toast("Erro ao apagar utilizador: "+e.message,"error");
