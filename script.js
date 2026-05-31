@@ -147,8 +147,8 @@ document.getElementById('modalConfirmBtn').onclick=()=>{if(pendingModal)pendingM
 document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)closeModal();};
 
 // PAGES
-function showPage(id){
- // BUG11: verificar permissão ANTES de alterar o DOM
+function showPage(id, addHistory=true){
+ // Verificar permissão ANTES de alterar o DOM
  if(id==='rentPage'&&(!currentUser||!currentUser.isAdmin)){
   toast("Apenas administradores!","error");
   id='menuPage';
@@ -162,11 +162,27 @@ function showPage(id){
  if(!target){console.error('showPage: página não encontrada →',id);return;}
  target.classList.remove('hidden');
  window.scrollTo(0,0);
- if(id==='searchPage'){clearTimeout(_searchDebounce);renderHouses();} // BUG21
- if(id==='menuPage') {startSlideshow();updateMenu();}
+ if(id==='searchPage'){clearTimeout(_searchDebounce);renderHouses();}
+ if(id==='menuPage'){startSlideshow();updateMenu();}
  if(id==='adminPage') loadAdmin();
  if(id==='profilePage') loadProfile();
+ // Botão retroceder do telemóvel — empurrar estado no histórico
+ if(addHistory){
+  history.pushState({page:id}, '', '#'+id);
+ }
 }
+
+// Interceptar o botão retroceder do telemóvel
+window.addEventListener('popstate', function(e){
+ const page = e.state?.page;
+ if(page){
+  showPage(page, false); // false = não empurrar novo estado
+ } else {
+  // Sem estado anterior — voltar à página inicial
+  const startPage = currentUser ? 'menuPage' : 'startPage';
+  showPage(startPage, false);
+ }
+});
 
 // FIX Bug#3 — goBack não usava o parâmetro page; mantido comportamento correto
 function goBack(){
