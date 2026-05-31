@@ -296,4 +296,93 @@
 <div class="page-header"><button class="back-btn" id="supportBack">voltar</button><h2>Suporte</h2></div>
 <div class="support-section"><h3> Como funciona?</h3><p>Pesquisa uma casa, veja os detalhes e contacta o proprietário. O arrendamento é feito a partir de 6 meses.</p></div>
 <div class="support-section"><h3> Como ser administrador?</h3><p>Contacte-nos via WhatsApp. Após análise, a equipa atribuirá os privilégios.</p></div>
-<div class="support-section"><h3> Suspeita de burla?</h3><p>Denuncie com os dados do utilizador. Agimos com rapidez.</
+<div class="support-section"><h3> Suspeita de burla?</h3><p>Denuncie com os dados do utilizador. Agimos com rapidez.</p></div>
+<div class="support-section"><h3> Cuidados a ter</h3><p>Visite sempre a casa pessoalmente antes de pagar.</p></div>
+<h3 style="font-family:'Playfair Display',serif;margin:20px 0 12px;"> Contactos</h3>
+<div class="contact-item"> +244 940 232 504</div>
+<div class="contact-item"> WhatsApp: +244 940 232 504</div>
+<div class="contact-item"> geral@decasaparacasa.ao</div>
+<div class="contact-item"> Angola — Luanda</div>
+<hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+<button class="btn-secondary" onclick="showPage('sobreNosPage')" style="margin-bottom:8px;"> Sobre Nós</button>
+<button class="btn-secondary" onclick="showPage('termosPage')"> Termos e Condições</button>
+<p style="font-size:12px;color:var(--text2);text-align:center;margin-top:24px;">© 2025 De Casa para Casa</p>
+</div>
+<!-- SOBRE NÓS -->
+<div class="container hidden" id="sobreNosPage">
+<div class="page-header"><button class="back-btn" onclick="showPage(currentUser?'menuPage':'startPage')">voltar</button><h2>Sobre Nós</h2></div>
+<div style="text-align:center;margin-bottom:20px;"><div style="font-size:48px;margin-bottom:8px;"></div><h3 style="font-family:'Playfair Display',serif;color:var(--accent2);">De Casa para Casa</h3><p style="color:var(--text2);font-size:13px;">O melhor site de arrendamento de Casas.</p></div>
+<div class="support-section"><h3> A Nossa História</h3><p>A <strong>De Casa para Casa</strong> nasceu da necessidade de simplificar o processo de arrendamento em Angola.</p></div>
+<div class="support-section"><h3> A Nossa Missão</h3><p>Tornar o arrendamento mais acessível, seguro e confiável para todos os angolanos.</p></div>
+<div class="support-section"><h3> Os Nossos Valores</h3><p><strong>Transparência</strong> · <strong>Segurança</strong> · <strong>Confiança</strong> · <strong>Inovação</strong></p></div>
+<div class="support-section"><h3> Fala Connosco</h3><p> +244 940 232 504<br> geral@decasaparacasa.ao<br> Luanda, Angola</p></div>
+<p style="font-size:12px;color:var(--text2);text-align:center;margin-top:16px;">© 2025 De Casa para Casa</p>
+</div>
+<!-- TERMOS -->
+<div class="container hidden" id="termosPage">
+<div class="page-header"><button class="back-btn" onclick="showPage(currentUser?'menuPage':'startPage')">voltar</button><h2>Termos e Condições</h2></div>
+<p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Última atualização: Janeiro 2025</p>
+<div class="support-section"><h3>1. Aceitação dos Termos</h3><p>Ao utilizar a plataforma <strong>De Casa para Casa</strong>, o utilizador aceita os presentes Termos e Condições.</p></div>
+<div class="support-section"><h3>2. Descrição do Serviço</h3><p>Plataforma digital de intermediação imobiliária para arrendamento em Angola. Não somos proprietários dos imóveis listados.</p></div>
+<div class="support-section"><h3>3. Responsabilidades</h3><p>O utilizador deve fornecer informações verdadeiras e não utilizar a plataforma para fins ilegais.</p></div>
+<div class="support-section"><h3>4. Privacidade</h3><p>Os dados pessoais são usados exclusivamente para a prestação do serviço e não são partilhados com terceiros.</p></div>
+<div class="support-section"><h3>5. Pagamentos</h3><p>Pagamentos apenas no escritório físico. Após pagamento não há reembolso, mas oferecemos alternativas de igual valor.</p></div>
+<div class="support-section"><h3>6. Lei Aplicável</h3><p>Estes termos são regidos pela legislação da República de Angola.</p></div>
+<p style="font-size:12px;color:var(--text2);text-align:center;margin-top:16px;">© 2025 De Casa para Casa</p>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="closeLightbox()">
+  <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10;margin:0;padding:0;width:44px;">✕</button>
+  <button id="lbPrev" onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">‹</button>
+  <button id="lbNext" onclick="event.stopPropagation();lbNav(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">›</button>
+  <img id="lbImg" src="" style="max-width:96vw;max-height:90vh;object-fit:contain;border-radius:8px;display:none;" onclick="event.stopPropagation()">
+  <video id="lbVid" controls style="max-width:96vw;max-height:90vh;border-radius:8px;display:none;" onclick="event.stopPropagation()"></video>
+  <div id="lbCounter" style="position:absolute;bottom:16px;color:rgba(255,255,255,.7);font-size:14px;"></div>
+</div>
+
+<!-- MODAL CONFIRM -->
+<div class="modal-overlay hidden" id="modalOverlay">
+<div class="modal-box">
+<div class="modal-title" id="modalTitle">Confirmação</div>
+<p id="modalMsg" style="color:var(--text2);font-size:14px;line-height:1.6;"></p>
+<div class="modal-actions">
+<button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+<button class="btn-danger" id="modalConfirmBtn">Confirmar</button>
+</div>
+</div>
+</div>
+<!-- MODAL CONTACT -->
+<div class="modal-overlay hidden" id="contactModal" onclick="if(event.target===this)document.getElementById('contactModal').classList.add('hidden')">
+<div class="modal-box" style="max-width:420px;width:95%;max-height:90vh;overflow-y:auto;padding:0;border-radius:18px;">
+
+  <!-- Cabeçalho -->
+  <div style="background:var(--accent2);padding:18px 20px 14px;border-radius:18px 18px 0 0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;font-weight:700;"> Detalhes da Casa</div>
+      <button onclick="document.getElementById('contactModal').classList.add('hidden')" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
+    </div>
+  </div>
+
+  <!-- Corpo -->
+  <div id="contactInfo" style="padding:18px 20px;"></div>
+
+  <!-- Acções -->
+  <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:10px;">
+    <a id="contactWhatsApp" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;border-radius:10px;padding:13px;font-weight:600;font-size:15px;text-decoration:none;">
+      <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.561 4.14 1.535 5.874L.057 23.943l6.204-1.453A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.683.862.933-3.588-.234-.369A9.818 9.818 0 1112 21.818z"/></svg>
+      Contactar no WhatsApp
+    </a>
+    <button onclick="document.getElementById('contactModal').classList.add('hidden')" class="btn-secondary" style="margin:0;">Fechar</button>
+  </div>
+
+</div>
+</div>
+<!-- FIREBASE SDKs PRIMEIRO - OBRIGATÓRIO -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- APP JS DEPOIS DO FIREBASE -->
+<script src="script.js"></script>
+</body>
+</html>
