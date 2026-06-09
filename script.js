@@ -1,6 +1,3 @@
-// 
-// CONFIGURAÇÃO FIREBASE
-// 
 firebase.initializeApp({
  apiKey: "AIzaSyCUnobF2AqI_5WI_VerwaT_CGiKi2CFQE8",
  authDomain: "de-casa-para-casa-24392.firebaseapp.com",
@@ -12,17 +9,10 @@ firebase.initializeApp({
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// 
-// CONFIGURAÇÃO SUPABASE STORAGE
-// ⚠️  Substitui pelos teus valores do painel Supabase → Settings → API
-// 
 const SUPABASE_URL = "https://jbyfjbpmhjbbxlwkxfus.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieWZqYnBtaGpiYnhsd2t4ZnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTY3MzAsImV4cCI6MjA5MzQ5MjczMH0.YSaYl4pmJnnikcBB3Ka9udxecFDf70ImKr7czYEruwk";
 const SUPABASE_BUCKET = "Casas";
 
-// Supabase configurado — bucket: Casas
-
-// Helper: upload de um ficheiro Blob/File para o Supabase Storage
 async function uploadToSupabase(file, path) {
  const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${path}`;
  const blob = (file instanceof Blob && file.type)
@@ -31,11 +21,11 @@ async function uploadToSupabase(file, path) {
  const contentType = blob.type || 'image/jpeg';
  const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
  console.log(`📤 A enviar: ${path} (${sizeMB}MB, ${contentType})`);
- // Verificar tamanho — Supabase free tier tem limite de 50MB por ficheiro
+ 
  if(blob.size > 50 * 1024 * 1024) throw new Error(`Ficheiro demasiado grande (${sizeMB}MB). Máximo: 50MB`);
  let res;
  try {
-  // Timeout de 120 segundos para vídeos grandes
+  
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 120000);
   res = await fetch(url, {
@@ -65,9 +55,8 @@ async function uploadToSupabase(file, path) {
  return publicUrl;
 }
 
-// Helper: apagar ficheiro do Supabase Storage pelo path
 async function deleteFromSupabase(path) {
- if(!path||typeof path!=='string'||path.trim()==='')return; // BUG9: guard null/vazio
+ if(!path||typeof path!=='string'||path.trim()==='')return; 
  const url = `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${encodeURIComponent(path).replace(/%2F/g,'/')}`;
  try{
   await fetch(url, {
@@ -80,8 +69,6 @@ async function deleteFromSupabase(path) {
  }catch(e){ console.warn('deleteFromSupabase silenciado:',e); }
 }
 
-// Extrai o path relativo de uma URL pública Supabase
-// Ex: "https://...supabase.co/storage/v1/object/public/casas/houses/abc.jpg" → "houses/abc.jpg"
 function supabasePathFromUrl(publicUrl) {
  const marker = `/object/public/${SUPABASE_BUCKET}/`;
  const idx = publicUrl.indexOf(marker);
@@ -92,29 +79,24 @@ let currentUser = null;
 let allHouses = [];
 let pendingModal = null;
 let editingHouseId = null;
-// Mapa global: houseId → array de URLs de media (evita JSON inline em onclick)
+
 const _mediaMap = {};
 
-// Placeholder SVG para imagens que falham — definido como função para evitar
-// problemas de aspas em atributos HTML inline
 function _imgError(el){
- el.onerror=null; // evitar loop
+ el.onerror=null; 
  el.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
 }
 
-// FIX Bug#13 — flag para ignorar onAuthStateChanged durante registo/resend
 let _suppressAuthChange = false;
 
-// DARK MODE
-// FIX Bug#1 — verificação de null em modeBtn
 const modeBtn = document.getElementById('toggleMode');
 if(modeBtn){
  const savedTheme=localStorage.getItem('dcpc_theme');
  if(savedTheme==='dark'){
   document.body.classList.add('dark');
-  modeBtn.textContent='Claro'; // escuro ativo → botão oferece "Claro"
+  modeBtn.textContent='Claro'; 
  } else {
-  modeBtn.textContent='Escuro'; // BUG10: claro ativo → botão oferece "Escuro"
+  modeBtn.textContent='Escuro'; 
  }
  modeBtn.onclick=()=>{
   document.body.classList.toggle('dark');
@@ -124,7 +106,6 @@ if(modeBtn){
  };
 }
 
-// TOAST
 function toast(msg,type='info'){
  const el=document.createElement('div');
  el.className=`toast ${type}`;
@@ -133,7 +114,6 @@ function toast(msg,type='info'){
  setTimeout(()=>el.remove(),3300);
 }
 
-// MODAL
 function showModal(title,msg,label,cb,danger=true){
  document.getElementById('modalTitle').textContent=title;
  document.getElementById('modalMsg').textContent=msg;
@@ -146,9 +126,8 @@ function closeModal(){document.getElementById('modalOverlay').classList.add('hid
 document.getElementById('modalConfirmBtn').onclick=()=>{if(pendingModal)pendingModal();closeModal();};
 document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)closeModal();};
 
-// PAGES
 function showPage(id, addHistory=true){
- // Verificar permissão ANTES de alterar o DOM
+ 
  if(id==='rentPage'&&(!currentUser||!currentUser.isAdmin)){
   toast("Apenas administradores!","error");
   id='menuPage';
@@ -166,31 +145,28 @@ function showPage(id, addHistory=true){
  if(id==='menuPage'){startSlideshow();updateMenu();}
  if(id==='adminPage') loadAdmin();
  if(id==='profilePage') loadProfile();
- // Botão retroceder do telemóvel — empurrar estado no histórico
+ 
  if(addHistory){
   history.pushState({page:id}, '', '#'+id);
  }
 }
 
-// Interceptar o botão retroceder do telemóvel
 window.addEventListener('popstate', function(e){
  const page = e.state?.page;
  if(page){
-  showPage(page, false); // false = não empurrar novo estado
+  showPage(page, false); 
  } else {
-  // Sem estado anterior — voltar à página inicial
+  
   const startPage = currentUser ? 'menuPage' : 'startPage';
   showPage(startPage, false);
  }
 });
 
-// FIX Bug#3 — goBack não usava o parâmetro page; mantido comportamento correto
 function goBack(){
  showPage(currentUser?'menuPage':'startPage');
 }
 document.getElementById('supportBack').onclick=()=>goBack();
 
-// MENU
 function updateMenu(){
  const a=currentUser?.isAdmin;
  document.getElementById('btnRent').classList.toggle('hidden',!a);
@@ -199,11 +175,10 @@ function updateMenu(){
  document.getElementById('menuAvatar').textContent=(currentUser?.name||'?')[0].toUpperCase();
  document.getElementById('menuUserName').textContent=currentUser?.name||'—';
  document.getElementById('menuUserEmail').textContent=currentUser?.email||'—';
- // FIX Bug#12 — atualizar visibilidade do botão logout ao atualizar menu
+ 
  _updateLogBtn();
 }
 
-// SLIDESHOW
 const slides=["IMG/00.jpg","IMG/1.jpg","IMG/2.jpg","IMG/3.jpg","IMG/4.jpg","IMG/5.jpg"];
 let si=0,st=null;
 function renderDots(){
@@ -227,7 +202,6 @@ function startSlideshow(){
  st=setInterval(()=>goSlide((si+1)%slides.length),3000);
 }
 
-// PASS STRENGTH
 function checkPassStrength(v){
  const bar=document.getElementById('passBar');
  let s=0;
@@ -237,7 +211,6 @@ function checkPassStrength(v){
  bar.style.background=['#ccc','#c0392b','#e08c1a','#e0c01a','#1a7a4a','#1a7a4a'][s];
 }
 
-// AUTH ERRORS
 function errMsg(e){
  const m={
   'auth/email-already-in-use':'Este email já está registado.',
@@ -251,7 +224,6 @@ function errMsg(e){
  return m[e.code]||e.message;
 }
 
-// REGISTER
 document.getElementById('registerBtn').onclick=async()=>{
  const name=document.getElementById('rName').value.trim();
  const phone=document.getElementById('rPhone').value.trim();
@@ -269,21 +241,27 @@ document.getElementById('registerBtn').onclick=async()=>{
  btn.disabled=true;btn.textContent=" A criar conta...";
  try{
   const cred=await auth.createUserWithEmailAndPassword(email,pass);
-  await cred.user.updateProfile({displayName:name});
+  
+  try{await cred.user.updateProfile({displayName:name});}catch(e2){}
+  
   await db.collection('users').doc(cred.user.uid).set({
-   nome:name,telefone:phone,email,administrador:false,
+   nome:name,
+   telefone:phone,
+   email:email,
+   administrador:false,
    criadoEm:firebase.firestore.FieldValue.serverTimestamp()
   });
   toast("Conta criada com sucesso! Bem-vindo(a) 🏠","success");
-  // onAuthStateChanged dispara automaticamente e redireciona para o menu
  }catch(e){
-  if(auth.currentUser)try{await auth.currentUser.delete();}catch(e2){}
+  
+  if(auth.currentUser&&e.code!=='auth/email-already-in-use'){
+   try{await auth.currentUser.delete();}catch(e2){}
+  }
   toast(errMsg(e),"error");
   btn.disabled=false;btn.textContent="Confirmar Cadastro";
  }
 };
 
-// LOGIN
 document.getElementById('loginBtn').onclick=async()=>{
  const email=document.getElementById('lEmail').value.trim();
  const pass=document.getElementById('lPass').value.trim();
@@ -292,7 +270,7 @@ document.getElementById('loginBtn').onclick=async()=>{
  btn.disabled=true;btn.textContent=" A entrar...";
  try{
   await auth.signInWithEmailAndPassword(email,pass);
-  // onAuthStateChanged trata o redirect para o menu
+  
   btn.disabled=false;btn.textContent="Entrar";
  }catch(e){
   toast(errMsg(e),"error");
@@ -300,9 +278,6 @@ document.getElementById('loginBtn').onclick=async()=>{
  }
 };
 
-// Verificação de email removida — utilizadores entram directamente após registo
-
-// RECOVER
 let lastRecoverEmail='', resendTimer=null;
 
 document.getElementById('recoverBtn').onclick=async()=>{
@@ -327,7 +302,7 @@ document.getElementById('recoverBtn').onclick=async()=>{
 async function resendRecovery(){
  if(!lastRecoverEmail)return;
  const btn=document.getElementById('resendRecoverBtn');
- if(!btn)return; // BUG24: guard null
+ if(!btn)return; 
  btn.disabled=true;btn.textContent=" A reenviar...";
  try{
   await auth.sendPasswordResetEmail(lastRecoverEmail);
@@ -341,8 +316,8 @@ function startResendCooldown(){
  let secs=60;
  const el=document.getElementById('resendCooldown');
  const btn=document.getElementById('resendRecoverBtn');
- if(!el||!btn)return; // BUG25: guard null
- clearInterval(resendTimer); // BUG25: limpar ANTES de desabilitar e mostrar texto
+ if(!el||!btn)return; 
+ clearInterval(resendTimer); 
  btn.disabled=true;el.style.display='block';
  el.textContent=`Podes reenviar em ${secs}s`;
  resendTimer=setInterval(()=>{
@@ -351,20 +326,17 @@ function startResendCooldown(){
  },1000);
 }
 
-// LOGOUT
-// FIX Bug#11 — mantida apenas uma implementação centralizada de logout
 function logout(){
  showModal('Sair','Tem a certeza que quer sair?','Sair',async()=>{
   try{
    await auth.signOut();
    toast("Sessão encerrada.","info");
-  }catch(e){ // BUG22: tratar falha no signOut
+  }catch(e){ 
    toast("Erro ao sair: "+e.message,"error");
   }
  });
 }
 
-// AUTH STATE
 function hideLoader(){
  const ls=document.getElementById('loadingScreen');
  if(!ls)return;
@@ -372,18 +344,17 @@ function hideLoader(){
  setTimeout(()=>ls.style.display='none',400);
 }
 
-// FIX Bug#14 — setTimeout de segurança fora do callback, chamado uma única vez
 setTimeout(hideLoader, 8000);
 
 auth.onAuthStateChanged(async user=>{
  if(_suppressAuthChange)return;
- // BUG18: restaurar sempre o botão login antes de navegar
+ 
  const lBtn=document.getElementById('loginBtn');
  if(lBtn){lBtn.disabled=false;lBtn.textContent='Entrar';}
  if(user){
   try{
    const doc=await db.collection('users').doc(user.uid).get();
-   // Se o documento não existe ou está banido — forçar logout
+   
    if(!doc.exists||doc.data()?.banido){
     await auth.signOut();
     toast("Esta conta foi removida.","error");
@@ -404,14 +375,13 @@ auth.onAuthStateChanged(async user=>{
  _updateLogBtn();
 });
 
-// GOOGLE AUTH
 async function loginWithGoogle(){
  const provider=new firebase.auth.GoogleAuthProvider();
  provider.setCustomParameters({prompt:'select_account'});
  try{
   const result=await auth.signInWithPopup(provider);
   const user=result.user;
-  // BUG23: proteger escrita Firestore com try interno para não bloquear login
+  
   try{
    const doc=await db.collection('users').doc(user.uid).get();
    if(!doc.exists){
@@ -431,13 +401,12 @@ async function loginWithGoogle(){
  }
 }
 
-// PROFILE
 function loadProfile(){
  if(!currentUser)return;
  document.getElementById('pName').value=currentUser.name;
  document.getElementById('pPhone').value=currentUser.phone;
  document.getElementById('pEmail').value=currentUser.email;
- document.getElementById('profileAvatar').textContent=(currentUser.name||'?')[0].toUpperCase(); // BUG26
+ document.getElementById('profileAvatar').textContent=(currentUser.name||'?')[0].toUpperCase(); 
  document.getElementById('pPassNew').value='';
 }
 
@@ -452,7 +421,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
   await db.collection('users').doc(currentUser.uid).update({name,phone});
   await auth.currentUser.updateProfile({displayName:name});
   if(passNew){
-   // BUG19: lançar erro em vez de return+reset manual para que o finally trate o botão
+   
    if(passNew.length<6) throw new Error('Password: mínimo 6 caracteres!');
    await auth.currentUser.updatePassword(passNew);
   }
@@ -460,7 +429,7 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
   toast("Perfil atualizado!","success");
   updateMenu();
  }catch(e){
-  // BUG20: mensagem amigável para erro de reautenticação
+  
   if(e.code==='auth/requires-recent-login'){
    toast("Por segurança, faz logout e login novamente antes de alterar a password.","error");
   }else{
@@ -470,8 +439,6 @@ document.getElementById('saveProfileBtn').onclick=async()=>{
  finally{btn.disabled=false;btn.textContent="Guardar Alterações";}
 };
 
-// HOUSES
-// BUG12: função chamada pelo back-btn do rentPage — limpa estado antes de sair
 function cancelRent(){
  editingHouseId=null;
  document.getElementById('editHouseId').value='';
@@ -512,7 +479,6 @@ function editHouse(id){
  showPage('rentPage');
 }
 
-// Comprimir imagem e devolver Blob para upload eficiente ao Supabase
 function compressImgToBlob(file,maxW,q){
  return new Promise((resolve,reject)=>{
   const rd=new FileReader();
@@ -529,7 +495,7 @@ function compressImgToBlob(file,maxW,q){
     c.toBlob(blob=>{
      if(blob){resolve(blob);}
      else{
-      // BUG13: fallback Safari — canvas.toBlob retornou null; usar dataURL como Blob
+      
       try{
        const dataUrl=c.toDataURL('image/jpeg',q);
        const arr=dataUrl.split(',');
@@ -547,9 +513,6 @@ function compressImgToBlob(file,maxW,q){
   rd.readAsDataURL(file);
  });
 }
-
-
-
 
 document.getElementById('saveHouse').onclick=async()=>{
  if(!currentUser?.isAdmin)return toast("Apenas administradores!","error");
@@ -574,20 +537,20 @@ document.getElementById('saveHouse').onclick=async()=>{
   let photos=[];
   if(files.length>0){
    prog.style.display='block';
-   // Gerar ID único para esta casa (usado no path do Supabase)
+   
    const houseFolder='houses/'+(Date.now())+'_'+(Math.random().toString(36).slice(2,8));
    for(let i=0;i<files.length;i++){
     const file=files[i];
     const isVid=file.type.startsWith('video/');
     if(isVid){
-     // Vídeos: upload direto sem compressão
+     
      prog.textContent=`A enviar vídeo ${i+1} de ${files.length}...`;
      const ext=file.name.split('.').pop()||'mp4';
      const path=`${houseFolder}/vid_${i}.${ext}`;
      const url=await uploadToSupabase(file,path);
      photos.push(url);
     }else{
-     // Imagens: comprimir primeiro, depois enviar ao Supabase
+     
      prog.textContent=`A enviar foto ${i+1} de ${files.length}...`;
      const blob=await compressImgToBlob(file,800,0.75);
      const path=`${houseFolder}/img_${i}.jpg`;
@@ -602,10 +565,10 @@ document.getElementById('saveHouse').onclick=async()=>{
   if(editId){
    const existingPhotos=allHouses.find(h=>h.id===editId)?.photos||[];
    if(photos.length===0){
-    // Sem novas fotos: manter existentes
+    
     photos=existingPhotos;
    }else{
-    // Com novas fotos: apagar as antigas do Supabase
+    
     for(const url of existingPhotos){
      const p=supabasePathFromUrl(url);
      if(p) await deleteFromSupabase(p).catch(()=>{});
@@ -625,19 +588,18 @@ document.getElementById('saveHouse').onclick=async()=>{
  }catch(e){
   const msg=e.message||'Erro desconhecido';
   toast("❌ "+msg,"error");
-  // Mostrar erro também no progresso para ser visível
+  
   const prog=document.getElementById('uploadProgress');
   if(prog){prog.style.display='block';prog.textContent='ERRO: '+msg;}
  }
  finally{
   btn.disabled=false;btn.textContent=" Guardar Casa";
-  // BUG14: garantir que o progresso é sempre limpo ao terminar (sucesso ou erro)
+  
   const progF=document.getElementById('uploadProgress');
   if(progF&&progF.textContent&&!progF.textContent.startsWith('ERRO'))progF.style.display='none';
  }
 };
 
-// RENDER HOUSES
 let filterModeActive="todos";
 function setFilter(mode,el){
  filterModeActive=mode;
@@ -650,7 +612,6 @@ function toggleAdvFilter(el){
  el.classList.toggle('active');
 }
 
-// FIX Bug#9 — helper para sanitizar texto antes de inserir no innerHTML
 function escapeHtml(str){
  if(!str)return '';
  return String(str)
@@ -689,11 +650,11 @@ async function renderHouses(){
  houses.forEach(h=>{
   const div=document.createElement('div');div.className='house-card';
   const photos=h.photos&&h.photos.length?h.photos:[];
-  _mediaMap[h.id]=photos; // guardar para openLightboxById
+  _mediaMap[h.id]=photos; 
   const sc=h.status||'disponivel';
   const hj=JSON.stringify({id:h.id,title:h.title||'',ownerContact:h.ownerContact||'',zone:h.zone||'',price:h.price||0,rooms:h.rooms||0,living:h.living||0,kitchen:h.kitchen||0,bathrooms:h.bathrooms||0,electricity:h.electricity||false,yard:h.yard||false,desc:h.desc||'',status:h.status||'disponivel'}).replace(/'/g,'&#39;');
-  // FIX Bug#9 — sanitizar campos de texto antes de injetar no innerHTML
-  // FIX Bug#16 — onerror com null-guard para evitar loop infinito
+  
+  
   const safeTitle=escapeHtml(h.title);
   const safeZone=escapeHtml(h.zone);
   const safeDesc=h.desc?escapeHtml(h.desc.length>100?h.desc.slice(0,100)+'…':h.desc):'';
@@ -729,7 +690,7 @@ function showContact(h){
  const statusColor={disponivel:'#1a7a4a',arrendada:'#c0392b'};
  const sc=h.status||'disponivel';
 
- // Formatar número para WhatsApp (remover espaços e garantir prefixo 244)
+ 
  const rawPhone=(h.ownerContact||'').replace(/\s+/g,'');
  const waNumber=rawPhone.startsWith('+')?rawPhone.slice(1):rawPhone.startsWith('0')?'244'+rawPhone.slice(1):rawPhone.startsWith('244')?rawPhone:'244'+rawPhone;
  const waMsg=encodeURIComponent('Olá! Vi a casa "'+h.title+'" no De Casa para Casa e tenho interesse. Pode dar mais informações?');
@@ -772,8 +733,6 @@ function showContact(h){
  document.getElementById('contactModal').classList.remove('hidden');
 }
 
-// FIX Bug#6 — gNav definida uma única vez, com suporte a vídeo integrado
-// FIX Bug#15 — substituição de media feita via innerHTML do container, não outerHTML
 function gNav(id,dir){
  const g=document.getElementById('g-'+id);
  if(!g)return;
@@ -787,7 +746,7 @@ function gNav(id,dir){
  const newSrc=photos[idx];
  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
 
- // Substituir o elemento media pelo novo, mantendo referência via ID do wrapper
+ 
  const mediaWrapper=document.createElement('div');
  mediaWrapper.innerHTML=renderMediaThumb(newSrc,photos,idx,id);
  const newEl=mediaWrapper.firstChild;
@@ -796,7 +755,7 @@ function gNav(id,dir){
  setTimeout(()=>{
   if(media.parentNode){
    media.parentNode.replaceChild(newEl,media);
-   // BUG17: forçar reflow e restaurar opacidade no novo elemento
+   
    newEl.style.opacity=0;
    requestAnimationFrame(()=>{newEl.style.transition='opacity .3s';newEl.style.opacity=1;});
   }
@@ -808,7 +767,7 @@ function gNav(id,dir){
 function delHouse(id){
  showModal('Apagar casa','Esta ação é irreversível. Confirmas?','Apagar',async()=>{
   try{
-   // Apagar fotos do Supabase Storage antes de apagar o documento
+   
    const house=allHouses.find(h=>h.id===id);
    if(house?.photos?.length){
     for(const url of house.photos){
@@ -825,25 +784,33 @@ function delHouse(id){
  });
 }
 
-// Bug#19 — debounce na pesquisa para evitar leituras excessivas ao Firestore
 let _searchDebounce=null;
 document.getElementById('searchInput').addEventListener('input',()=>{
  clearTimeout(_searchDebounce);
  _searchDebounce=setTimeout(()=>renderHouses(),350);
 });
 
-// ADMIN
 async function loadAdmin(){
  if(!currentUser?.isAdmin){toast("Acesso negado!","error");showPage('menuPage');return;}
- // BUG27: mostrar spinner antes de cada carregamento (não apenas na primeira vez)
+ 
  const listEl=document.getElementById('userList');
  if(listEl)listEl.innerHTML='<div class="spinner"></div>';
  try{
   const [uSnap,hSnap]=await Promise.all([db.collection('users').get(),db.collection('houses').get()]);
-  const users=uSnap.docs.map(d=>({uid:d.id,...d.data()}));
+  const users=uSnap.docs.map(d=>{
+   const r=d.data();
+   return {
+    uid:d.id,
+    name:r.nome||r.name||'—',
+    phone:r.telefone||r.phone||'—',
+    email:r.email||'—',
+    isAdmin:r.administrador||r.isAdmin||false,
+    banido:r.banido||false
+   };
+  }).filter(u=>!u.banido); 
   const houses=hSnap.docs.map(d=>({id:d.id,...d.data()}));
-  const avail=houses.filter(h=>!h.status||h.status==='disponivel').length;
-  const rented=houses.filter(h=>h.status==='arrendada').length;
+  const avail=houses.filter(h=>!h.estado&&!h.status||h.estado==='disponivel'||h.status==='disponivel').length;
+  const rented=houses.filter(h=>h.estado==='arrendada'||h.status==='arrendada').length;
   document.getElementById('adminStats').innerHTML=`
   <div class="stat-card"><span class="stat-num">${users.length}</span><span class="stat-label">Utilizadores</span></div>
 <div class="stat-card"><span class="stat-num">${houses.length}</span><span class="stat-label">Casas</span></div>
@@ -853,11 +820,14 @@ async function loadAdmin(){
   users.forEach(u=>{
    const isSelf=u.uid===currentUser.uid;
    const item=document.createElement('div');item.className='user-item';
+   const uName=escapeHtml(u.name||'—');
+   const uPhone=escapeHtml(u.phone||'—');
+   const uEmail=escapeHtml(u.email||'—');
    item.innerHTML=`
    <div class="user-avatar" style="width:36px;height:36px;font-size:14px;flex-shrink:0;">${escapeHtml((u.name||'?')[0].toUpperCase())}</div>
 <div class="user-item-info">
-<strong>${escapeHtml(u.name||'—')} ${u.isAdmin?'<span class="admin-badge">ADMIN</span>':''} ${isSelf?'<span style="font-size:10px;color:var(--text2);">(você)</span>':''}</strong>
-<span> ${escapeHtml(u.phone||'—')} · ${escapeHtml(u.email||'—')}</span>
+<strong>${uName} ${u.isAdmin?'<span class="admin-badge">ADMIN</span>':''} ${isSelf?'<span style="font-size:10px;color:var(--text2);">(você)</span>':''}</strong>
+<span> ${uPhone} · ${uEmail}</span>
 </div>
 <div class="user-item-actions">
    ${!isSelf?(u.isAdmin?`<button class="btn-danger btn-sm" onclick="setAdmin('${u.uid}',false)">- Admin</button>`:`<button class="btn-success btn-sm" onclick="setAdmin('${u.uid}',true)">+ Admin</button>`):''}
@@ -880,23 +850,19 @@ async function setAdmin(uid,val){
  }
 }
 
-// FIX Bug#10 — delUser agora também remove a conta Firebase Auth via Admin SDK
-// Nota: a eliminação da conta Auth requer Firebase Admin SDK no backend.
-// Aqui marcamos o utilizador como "deleted" no Firestore e removemos os dados;
-// a eliminação final da conta Auth deve ser feita por uma Cloud Function.
 function delUser(uid){
  if(uid===currentUser?.uid)return toast("Não podes apagar a tua própria conta!","error");
  showModal('Apagar utilizador','Esta ação é permanente. Confirmas?','Apagar',async()=>{
   try{
-   // Marcar como banido ANTES de apagar — assim se o utilizador estiver online
-   // o onAuthStateChanged detecta e faz logout imediato
+   
+   
    await db.collection('users').doc(uid).set({
     banido:true,
     apagarEm:firebase.firestore.FieldValue.serverTimestamp()
    });
-   // Apagar o documento após marcar
+   
    await db.collection('users').doc(uid).delete();
-   // Guardar na fila de eliminação (para referência futura)
+   
    await db.collection('filaDependentes').doc(uid).set({
     uid,
     pedidoEm:firebase.firestore.FieldValue.serverTimestamp()
@@ -909,14 +875,11 @@ function delUser(uid){
  });
 }
 
-// BUTTONS
 document.getElementById('btnRegister').onclick=()=>showPage('registerPage');
 document.getElementById('btnLogin').onclick=()=>showPage('loginPage');
 document.getElementById('googleLoginBtn').onclick=()=>loginWithGoogle();
 document.getElementById('googleRegisterBtn').onclick=()=>loginWithGoogle();
 
-// FIX Bug#11 — botão de logout usa a função centralizada logout()
-// FIX Bug#12 — _updateLogBtn é chamada em updateMenu() e onAuthStateChanged
 const _logBtn=document.getElementById('logoutTopBtn');
 if(_logBtn){
  _logBtn.onclick=()=>logout();
@@ -925,32 +888,28 @@ function _updateLogBtn(){
  if(_logBtn) _logBtn.classList.toggle('hidden',!currentUser);
 }
 
-// MEDIA THUMB
 function isVideo(src){
  if(!src)return false;
  if(src.startsWith('data:video'))return true;
- // BUG28: remover query string antes de verificar extensão
+ 
  const cleanSrc=src.split('?')[0];
  return /\.(mp4|webm|ogg|mov)$/i.test(cleanSrc);
 }
 
-// FIX Bug#7 — template literals corrigidos (removido \$ → $)
 function renderMediaThumb(src, allMedia, idx, houseId){
  if(isVideo(src)){
-  // FIX-VIDEO: usar houseId em vez de JSON inline para evitar quebra de atributo HTML
+  
   return `<div style="position:relative;width:100%;height:190px;background:#111;cursor:pointer;display:flex;align-items:center;justify-content:center;" onclick="openLightboxById('${houseId}',${idx})" data-idx="${idx}" data-house-id="${houseId}"><video src="${src}" style="width:100%;height:190px;object-fit:cover;display:block;pointer-events:none;" muted playsinline preload="metadata"></video><div style="position:absolute;width:52px;height:52px;background:rgba(0,0,0,.6);border-radius:50%;display:flex;align-items:center;justify-content:center;"><svg viewBox='0 0 24 24' fill='white' width='26' height='26'><polygon points='5,3 19,12 5,21'/></svg></div></div>`;
  }
  const ph="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
- // BUG16: sanitizar aspas simples em data-photos para não quebrar o atributo HTML
+ 
  const ph2="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect fill='%23c8873a22' width='400' height='200'/%3E%3Ctext y='55%25' x='50%25' text-anchor='middle' dominant-baseline='middle' font-size='48'%3E%F0%9F%8F%A1%3C/text%3E%3C/svg%3E";
- // FIX-IMG: usar houseId em vez de JSON inline
+ 
  return `<img src="${src}" alt="foto" data-idx="${idx}" data-house-id="${houseId}" onerror="_imgError(this)" style="cursor:zoom-in;" onclick="openLightboxById('${houseId}',${idx})">`;
 }
 
-// LIGHTBOX
 let _lbMedia=[], _lbIdx=0;
 
-// openLightboxById: abre pelo ID da casa (evita JSON inline em onclick)
 function openLightboxById(houseId, idx){
  const media=_mediaMap[houseId];
  if(!media||!media.length)return;
@@ -974,13 +933,12 @@ function openLightbox(media, idx){
 function closeLightbox(){
  const lb=document.getElementById('lightbox');
  lb.classList.remove('open');
- lb.style.display='none'; // FIX-LB: garantir que fecha mesmo sem CSS
+ lb.style.display='none'; 
  const v=document.getElementById('lbVid');
  if(v){v.pause(); v.src='';}
  document.body.style.overflow='';
 }
 
-// FIX Bug#17 — lbNav verifica array vazio antes de calcular índice
 function lbNav(dir){
  if(!_lbMedia.length)return;
  _lbIdx=(_lbIdx+dir+_lbMedia.length)%_lbMedia.length;
@@ -997,7 +955,7 @@ function lbShow(){
 
  if(isVideo(src)){
   img.style.display='none';
-  vid.removeAttribute('src'); // limpar antes
+  vid.removeAttribute('src'); 
   vid.style.display='block';
   vid.style.maxWidth='96vw';
   vid.style.maxHeight='90vh';
@@ -1005,7 +963,7 @@ function lbShow(){
   vid.setAttribute('playsinline','');
   vid.src=src;
   vid.load();
-  // autoplay após load (mobile pode bloquear mas controls ficam visíveis)
+  
   const playPromise=vid.play();
   if(playPromise!==undefined) playPromise.catch(()=>{});
  }else{
@@ -1019,7 +977,6 @@ function lbShow(){
  next.style.display=_lbMedia.length>1?'flex':'none';
 }
 
-// FIX Bug#17 — teclas de navegação só ativas quando lightbox está aberto
 document.addEventListener('keydown',e=>{
  const isOpen=document.getElementById('lightbox')?.classList.contains('open');
  if(isOpen&&e.key==='Escape') closeLightbox();
