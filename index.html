@@ -4,11 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ═══════════════════════════════════════
-     SEO — De Casa para Casa
-════════════════════════════════════════ -->
-
-<!-- Título e descrição para o Google -->
 <title>De Casa para Casa | Casas para Arrendar em Luanda, Angola</title>
 <meta name="description" content="Encontra casas para arrendar em Luanda e Angola. Vê fotos, detalhes e contacta o proprietário directamente pelo WhatsApp. Simples, rápido e gratuito.">
 <meta name="keywords" content="casas para arrendar Luanda, arrendamento Angola, casas Angola, quartos para arrendar Luanda, imóveis Luanda, De Casa para Casa">
@@ -16,14 +11,11 @@
 <meta name="robots" content="index, follow">
 <meta name="google-site-verification" content="W8MhSox5k1L6Altr9alPvGXDAG5HZUHN5YExWsGBNBE" />
 
-<!-- CSP removida — Firebase Auth requer demasiados domínios dinâmicos -->
 <link rel="canonical" href="https://de-casa-para-casa.pages.dev/">
 
-<!-- Idioma -->
 <meta http-equiv="content-language" content="pt-AO">
 <meta name="language" content="Portuguese">
 
-<!-- Open Graph — como aparece no WhatsApp, Facebook e Google -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://de-casa-para-casa.pages.dev/">
 <meta property="og:title" content="De Casa para Casa | Casas para Arrendar em Luanda">
@@ -34,13 +26,11 @@
 <meta property="og:locale" content="pt_AO">
 <meta property="og:site_name" content="De Casa para Casa">
 
-<!-- Twitter/X Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="De Casa para Casa | Casas para Arrendar em Luanda">
 <meta name="twitter:description" content="Encontra casas para arrendar em Luanda e Angola. Contacta o proprietário directamente pelo WhatsApp.">
 <meta name="twitter:image" content="https://de-casa-para-casa.pages.dev/IMG/og-image.jpg">
 
-<!-- Google: negócio local -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -64,14 +54,13 @@
 }
 </script>
 
-<!-- Favicon emoji casa -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- LOADING SCREEN -->
+
 <div id="loadingScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;">
 <div style="position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
 <svg style="position:absolute;inset:0;width:96px;height:96px;animation:spin .9s linear infinite;" viewBox="0 0 96 96" fill="none">
@@ -96,7 +85,7 @@
 <button id="toggleMode">Escuro</button>
 <button id="logoutTopBtn" class="hidden">Sair</button>
 </div>
-<!-- START -->
+
 <div class="container hidden" id="startPage">
 <div class="logo-area">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 190" fill="none" stroke="#c8873a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="width:140px;display:block;margin:0 auto 8px;">
@@ -120,7 +109,7 @@
 <p class="link" onclick="showPage('sobreNosPage')" style="margin-top:8px;"> Sobre Nós</p>
 <p class="link" onclick="showPage('suportePage')" style="margin-top:4px;"> Como funciona?</p>
 </div>
-<!-- REGISTER -->
+
 <div class="container hidden" id="registerPage">
 <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">voltar</button><h2>Criar Conta</h2></div>
 <div class="field"><label>Nome completo</label><input id="rName" placeholder="Ex: João Silva"></div>
@@ -143,7 +132,7 @@
  Continuar com Google
  </button>
 </div>
-<!-- LOGIN -->
+
 <div class="container hidden" id="loginPage">
 <div class="page-header"><button class="back-btn" onclick="showPage('startPage')">voltar</button><h2>Entrar</h2></div>
 <div class="field"><label>Email</label><input id="lEmail" type="email" placeholder="O teu email"></div>
@@ -161,7 +150,7 @@
 
 <p class="link" onclick="showPage('recoverPage')">Esqueceu a password?</p>
 </div>
-<!-- RECOVER -->
+
 <div class="container hidden" id="recoverPage">
 <div class="page-header"><button class="back-btn" onclick="showPage('loginPage')">voltar</button><h2>Recuperar Senha</h2></div>
 <div id="recoverStep1">
@@ -187,7 +176,7 @@
 </div>
 </div>
 </div>
-<!-- MENU -->
+
 <div class="container hidden" id="menuPage">
 <div style="text-align:center;margin-bottom:10px;">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 190" fill="none" stroke="#c8873a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" style="width:90px;display:inline-block;">
@@ -226,7 +215,7 @@
 <p class="link" style="margin-top:8px;font-size:13px;" onclick="showPage('sobreNosPage')"> Sobre Nós</p>
 <p class="link" style="margin-top:4px;font-size:13px;" onclick="showPage('termosPage')"> Termos e Condições</p>
 </div>
-<!-- PROFILE -->
+
 <div class="container hidden" id="profilePage">
 <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Meu Perfil</h2></div>
 <div class="profile-avatar" id="profileAvatar">?</div>
@@ -237,7 +226,7 @@
 <div class="field"><label>Nova password (opcional)</label><input id="pPassNew" type="password" placeholder="Deixa em branco para não alterar"></div>
 <button id="saveProfileBtn"> Guardar Alterações</button>
 </div>
-<!-- SEARCH -->
+
 <div class="container wide hidden" id="searchPage">
 <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Casas Disponíveis</h2></div>
 <div class="search-bar"><span class="search-icon"></span><input id="searchInput" placeholder="Pesquisar por título, zona, preço..."></div>
@@ -257,7 +246,7 @@
 </div>
 <div id="houseList" class="house-list"></div>
 </div>
-<!-- RENT -->
+
 <div class="container hidden" id="rentPage">
 <div class="page-header"><button class="back-btn" onclick="cancelRent()">voltar</button><h2 id="rentPageTitle">Arrendar Casa</h2></div>
 <input type="hidden" id="editHouseId">
@@ -283,14 +272,14 @@
 <p id="uploadProgress" style="display:none;font-size:13px;color:var(--text2);text-align:center;margin:8px 0;"></p>
 <button id="saveHouse"> Guardar Casa</button>
 </div>
-<!-- ADMIN -->
+
 <div class="container wide hidden" id="adminPage">
 <div class="page-header"><button class="back-btn" onclick="showPage('menuPage')">voltar</button><h2>Administração</h2></div>
 <div class="stats-grid" id="adminStats"></div>
 <h3 class="admin-section-title"> Utilizadores</h3>
 <div id="userList"><div class="spinner"></div></div>
 </div>
-<!-- SUPORTE -->
+
 <div class="container hidden" id="suportePage">
 <div class="page-header"><button class="back-btn" id="supportBack">voltar</button><h2>Suporte</h2></div>
 <div class="support-section"><h3> Como funciona?</h3><p>Pesquisa uma casa, veja os detalhes e contacta o proprietário. O arrendamento é feito a partir de 6 meses.</p></div>
@@ -307,7 +296,7 @@
 <button class="btn-secondary" onclick="showPage('termosPage')"> Termos e Condições</button>
 <p style="font-size:12px;color:var(--text2);text-align:center;margin-top:24px;">© 2025 De Casa para Casa</p>
 </div>
-<!-- SOBRE NÓS -->
+
 <div class="container hidden" id="sobreNosPage">
 <div class="page-header"><button class="back-btn" onclick="showPage(currentUser?'menuPage':'startPage')">voltar</button><h2>Sobre Nós</h2></div>
 <div style="text-align:center;margin-bottom:20px;"><div style="font-size:48px;margin-bottom:8px;"></div><h3 style="font-family:'Playfair Display',serif;color:var(--accent2);">De Casa para Casa</h3><p style="color:var(--text2);font-size:13px;">O melhor site de arrendamento de Casas.</p></div>
@@ -317,7 +306,7 @@
 <div class="support-section"><h3> Fala Connosco</h3><p> +244 940 232 504<br> geral@decasaparacasa.ao<br> Luanda, Angola</p></div>
 <p style="font-size:12px;color:var(--text2);text-align:center;margin-top:16px;">© 2025 De Casa para Casa</p>
 </div>
-<!-- TERMOS -->
+
 <div class="container hidden" id="termosPage">
 <div class="page-header"><button class="back-btn" onclick="showPage(currentUser?'menuPage':'startPage')">voltar</button><h2>Termos e Condições</h2></div>
 <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">Última atualização: Janeiro 2025</p>
@@ -330,7 +319,6 @@
 <p style="font-size:12px;color:var(--text2);text-align:center;margin-top:16px;">© 2025 De Casa para Casa</p>
 </div>
 
-<!-- LIGHTBOX -->
 <div id="lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;flex-direction:column;align-items:center;justify-content:center;" onclick="closeLightbox()">
   <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10;margin:0;padding:0;width:44px;">✕</button>
   <button id="lbPrev" onclick="event.stopPropagation();lbNav(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;margin:0;padding:0;">‹</button>
@@ -340,7 +328,6 @@
   <div id="lbCounter" style="position:absolute;bottom:16px;color:rgba(255,255,255,.7);font-size:14px;"></div>
 </div>
 
-<!-- MODAL CONFIRM -->
 <div class="modal-overlay hidden" id="modalOverlay">
 <div class="modal-box">
 <div class="modal-title" id="modalTitle">Confirmação</div>
@@ -351,11 +338,11 @@
 </div>
 </div>
 </div>
-<!-- MODAL CONTACT -->
+
 <div class="modal-overlay hidden" id="contactModal" onclick="if(event.target===this)document.getElementById('contactModal').classList.add('hidden')">
 <div class="modal-box" style="max-width:420px;width:95%;max-height:90vh;overflow-y:auto;padding:0;border-radius:18px;">
 
-  <!-- Cabeçalho -->
+  
   <div style="background:var(--accent2);padding:18px 20px 14px;border-radius:18px 18px 0 0;">
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff;font-weight:700;"> Detalhes da Casa</div>
@@ -363,10 +350,10 @@
     </div>
   </div>
 
-  <!-- Corpo -->
+  
   <div id="contactInfo" style="padding:18px 20px;"></div>
 
-  <!-- Acções -->
+  
   <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:10px;">
     <a id="contactWhatsApp" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:#fff;border-radius:10px;padding:13px;font-weight:600;font-size:15px;text-decoration:none;">
       <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.561 4.14 1.535 5.874L.057 23.943l6.204-1.453A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.683.862.933-3.588-.234-.369A9.818 9.818 0 1112 21.818z"/></svg>
@@ -377,11 +364,11 @@
 
 </div>
 </div>
-<!-- FIREBASE SDKs PRIMEIRO - OBRIGATÓRIO -->
+
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<!-- APP JS DEPOIS DO FIREBASE -->
+
 <script src="script.js"></script>
 </body>
 </html>
