@@ -118,22 +118,17 @@ button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 .pass-strength-bar{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0;background:var(--danger);}
 input,select,textarea{font-size:16px;}
 
-/* Loading screen */
 .logo-area svg{display:block;margin:0 auto 6px;}
 
 #logoutTopBtn:hover{border-color:var(--danger);color:var(--danger);transform:none;opacity:1;}
 
-
-/* ── TOPBAR ── */
 .topbar{width:100%;max-width:1400px;display:flex;justify-content:flex-end;align-items:center;padding:10px 0 12px;gap:10px;}
 #toggleMode{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:20px;cursor:pointer;font-size:18px;transition:all .2s;box-shadow:0 2px 6px var(--shadow);margin:0;width:auto;}
 #logoutTopBtn{background:var(--card);border:1px solid var(--border);color:var(--danger);padding:8px 0;border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;box-shadow:0 2px 6px var(--shadow);margin:0;width:100px;min-width:100px;}
 #logoutTopBtn:hover{background:var(--danger);color:#fff;transform:none;opacity:1;}
 
-/* ── RESPONSIVE LAYOUT ── */
 body{max-width:1400px;margin:0 auto;padding:16px;}
 
-/* Smartphone */
 @media(max-width:600px){
   .container{padding:18px 14px;}
   .house-list{grid-template-columns:1fr;}
@@ -141,7 +136,7 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
   .filter-grid,.rent-grid{grid-template-columns:1fr;}
   h2{font-size:1.3rem;}
 }
-/* Tablet */
+
 @media(min-width:601px) and (max-width:1024px){
   .container{max-width:700px;}
   .container.wide{max-width:95%;}
@@ -149,7 +144,7 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
   .menu-grid{grid-template-columns:repeat(3,1fr);}
   body{padding:20px;}
 }
-/* PC */
+
 @media(min-width:1025px) and (max-width:1599px){
   body{padding:24px;}
   .container{max-width:560px;}
@@ -157,7 +152,7 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
   .house-list{grid-template-columns:repeat(3,1fr);}
   .menu-grid{grid-template-columns:repeat(3,1fr);}
 }
-/* Smart TV / Large screen */
+
 @media(min-width:1600px){
   body{padding:32px;font-size:17px;}
   .container{max-width:640px;}
@@ -171,11 +166,9 @@ body{max-width:1400px;margin:0 auto;padding:16px;}
   h2{font-size:2rem;}
   .card-gallery img{height:240px;}
 }
-/* Touch devices */
+
 @media(hover:none) and (pointer:coarse){
   button,.link{min-height:44px;}
   input,select,textarea{font-size:16px;}
 }
 
-/* ── LIGHTBOX ── */
-/* display controlado por JS via style inline — não redefinir aqui */
